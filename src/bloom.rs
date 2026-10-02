@@ -63,11 +63,17 @@ impl FlyBloom {
             ));
         }
         let m = hasher.n_kc();
+        // Timestamps are only needed for lazy recovery.
+        let touched = if params.recovery > 0.0 {
+            vec![0; m]
+        } else {
+            Vec::new()
+        };
         Ok(Self {
             hasher,
             params,
             weights: vec![1.0; m],
-            touched: vec![0; m],
+            touched,
             clock: 0,
         })
     }

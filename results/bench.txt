@@ -1,0 +1,167 @@
+   Compiling syn v3.0.6
+   Compiling serde_json v1.0.151
+   Compiling either v1.18.0
+   Compiling anstyle v1.0.14
+   Compiling memchr v2.8.3
+   Compiling regex-syntax v0.8.11
+   Compiling clap_lex v1.1.1
+   Compiling ciborium-io v0.2.2
+   Compiling cast v0.3.0
+   Compiling same-file v1.0.6
+   Compiling anes v0.1.6
+   Compiling once_cell v1.21.4
+   Compiling oorandom v11.1.5
+   Compiling num-traits v0.2.19
+   Compiling half v2.7.1
+   Compiling is-terminal v0.4.17
+   Compiling walkdir v2.5.0
+   Compiling clap_builder v4.6.7
+   Compiling itertools v0.10.5
+   Compiling ciborium-ll v0.2.2
+   Compiling regex-automata v0.4.18
+   Compiling criterion-plot v0.5.0
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling clap v4.6.7
+   Compiling thiserror v2.0.21
+   Compiling kenyon v0.1.0 (/home/cole/RustProjects/active/kenyon)
+   Compiling regex v1.13.1
+   Compiling serde v1.0.229
+   Compiling ciborium v0.2.2
+   Compiling tinytemplate v1.2.1
+   Compiling criterion v0.5.1
+    Finished `bench` profile [optimized + debuginfo] target(s) in 4.99s
+     Running benches/throughput.rs (target/release/build/kenyon/9bfe3144164b50fc/out/throughput-9bfe3144164b50fc)
+Benchmarking hash/flyhash/mnist_d784_m7840_k4
+Benchmarking hash/flyhash/mnist_d784_m7840_k4: Warming up for 3.0000 s
+Benchmarking hash/flyhash/mnist_d784_m7840_k4: Collecting 100 samples in estimated 5.6239 s (25k iterations)
+Benchmarking hash/flyhash/mnist_d784_m7840_k4: Analyzing
+hash/flyhash/mnist_d784_m7840_k4
+                        time:   [220.80 µs 221.03 µs 221.29 µs]
+                        thrpt:  [4.5189 Kelem/s 4.5243 Kelem/s 4.5290 Kelem/s]
+Found 8 outliers among 100 measurements (8.00%)
+  2 (2.00%) low mild
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+Benchmarking hash/lsh_dense/mnist_d784_m7840_k4
+Benchmarking hash/lsh_dense/mnist_d784_m7840_k4: Warming up for 3.0000 s
+Benchmarking hash/lsh_dense/mnist_d784_m7840_k4: Collecting 100 samples in estimated 5.0067 s (3.0M iterations)
+Benchmarking hash/lsh_dense/mnist_d784_m7840_k4: Analyzing
+hash/lsh_dense/mnist_d784_m7840_k4
+                        time:   [1.6574 µs 1.6598 µs 1.6630 µs]
+                        thrpt:  [601.33 Kelem/s 602.50 Kelem/s 603.34 Kelem/s]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low severe
+  3 (3.00%) low mild
+  2 (2.00%) high severe
+Benchmarking hash/flyhash/sift_d128_m1280_k16
+Benchmarking hash/flyhash/sift_d128_m1280_k16: Warming up for 3.0000 s
+Benchmarking hash/flyhash/sift_d128_m1280_k16: Collecting 100 samples in estimated 5.0034 s (682k iterations)
+Benchmarking hash/flyhash/sift_d128_m1280_k16: Analyzing
+hash/flyhash/sift_d128_m1280_k16
+                        time:   [7.2889 µs 7.3048 µs 7.3237 µs]
+                        thrpt:  [136.54 Kelem/s 136.90 Kelem/s 137.19 Kelem/s]
+Found 8 outliers among 100 measurements (8.00%)
+  5 (5.00%) high mild
+  3 (3.00%) high severe
+Benchmarking hash/lsh_dense/sift_d128_m1280_k16
+Benchmarking hash/lsh_dense/sift_d128_m1280_k16: Warming up for 3.0000 s
+Benchmarking hash/lsh_dense/sift_d128_m1280_k16: Collecting 100 samples in estimated 5.0024 s (7.9M iterations)
+Benchmarking hash/lsh_dense/sift_d128_m1280_k16: Analyzing
+hash/lsh_dense/sift_d128_m1280_k16
+                        time:   [631.15 ns 631.93 ns 632.89 ns]
+                        thrpt:  [1.5801 Melem/s 1.5825 Melem/s 1.5844 Melem/s]
+Found 9 outliers among 100 measurements (9.00%)
+  2 (2.00%) low mild
+  4 (4.00%) high mild
+  3 (3.00%) high severe
+Benchmarking hash/densefly/sift_d128_m1280
+Benchmarking hash/densefly/sift_d128_m1280: Warming up for 3.0000 s
+Benchmarking hash/densefly/sift_d128_m1280: Collecting 100 samples in estimated 5.0223 s (525k iterations)
+Benchmarking hash/densefly/sift_d128_m1280: Analyzing
+hash/densefly/sift_d128_m1280
+                        time:   [9.6904 µs 9.7048 µs 9.7194 µs]
+                        thrpt:  [102.89 Kelem/s 103.04 Kelem/s 103.19 Kelem/s]
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) low mild
+  1 (1.00%) high severe
+
+Benchmarking index_10k_sift_k16/query_overlap_top100
+Benchmarking index_10k_sift_k16/query_overlap_top100: Warming up for 3.0000 s
+Benchmarking index_10k_sift_k16/query_overlap_top100: Collecting 100 samples in estimated 5.0329 s (71k iterations)
+Benchmarking index_10k_sift_k16/query_overlap_top100: Analyzing
+index_10k_sift_k16/query_overlap_top100
+                        time:   [71.103 µs 71.159 µs 71.218 µs]
+                        thrpt:  [14.041 Kelem/s 14.053 Kelem/s 14.064 Kelem/s]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low severe
+  2 (2.00%) high mild
+  3 (3.00%) high severe
+Benchmarking index_10k_sift_k16/query_euclidean_top100
+Benchmarking index_10k_sift_k16/query_euclidean_top100: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 6.3s, enable flat sampling, or reduce sample count to 60.
+Benchmarking index_10k_sift_k16/query_euclidean_top100: Collecting 100 samples in estimated 6.3326 s (5050 iterations)
+Benchmarking index_10k_sift_k16/query_euclidean_top100: Analyzing
+index_10k_sift_k16/query_euclidean_top100
+                        time:   [1.2484 ms 1.2497 ms 1.2509 ms]
+                        thrpt:  [799.39  elem/s 800.22  elem/s 801.00  elem/s]
+Found 9 outliers among 100 measurements (9.00%)
+  4 (4.00%) low mild
+  2 (2.00%) high mild
+  3 (3.00%) high severe
+
+Benchmarking bloom_sift_m150k_k20/insert_code
+Benchmarking bloom_sift_m150k_k20/insert_code: Warming up for 3.0000 s
+Benchmarking bloom_sift_m150k_k20/insert_code: Collecting 100 samples in estimated 5.0001 s (142M iterations)
+Benchmarking bloom_sift_m150k_k20/insert_code: Analyzing
+bloom_sift_m150k_k20/insert_code
+                        time:   [35.211 ns 35.255 ns 35.300 ns]
+                        thrpt:  [28.328 Melem/s 28.365 Melem/s 28.400 Melem/s]
+Found 7 outliers among 100 measurements (7.00%)
+  3 (3.00%) low mild
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+Benchmarking bloom_sift_m150k_k20/novelty_code
+Benchmarking bloom_sift_m150k_k20/novelty_code: Warming up for 3.0000 s
+Benchmarking bloom_sift_m150k_k20/novelty_code: Collecting 100 samples in estimated 5.0001 s (152M iterations)
+Benchmarking bloom_sift_m150k_k20/novelty_code: Analyzing
+bloom_sift_m150k_k20/novelty_code
+                        time:   [32.911 ns 32.953 ns 32.998 ns]
+                        thrpt:  [30.305 Melem/s 30.346 Melem/s 30.385 Melem/s]
+Found 4 outliers among 100 measurements (4.00%)
+  2 (2.00%) low mild
+  2 (2.00%) high mild
+Benchmarking bloom_sift_m150k_k20/observe_raw_vector
+Benchmarking bloom_sift_m150k_k20/observe_raw_vector: Warming up for 3.0000 s
+Benchmarking bloom_sift_m150k_k20/observe_raw_vector: Collecting 100 samples in estimated 7.5344 s (10k iterations)
+Benchmarking bloom_sift_m150k_k20/observe_raw_vector: Analyzing
+bloom_sift_m150k_k20/observe_raw_vector
+                        time:   [740.60 µs 742.35 µs 744.46 µs]
+                        thrpt:  [1.3432 Kelem/s 1.3471 Kelem/s 1.3502 Kelem/s]
+Found 7 outliers among 100 measurements (7.00%)
+  2 (2.00%) low mild
+  3 (3.00%) high mild
+  2 (2.00%) high severe
+
+Benchmarking flymodel_mnist20/train_one
+Benchmarking flymodel_mnist20/train_one: Warming up for 3.0000 s
+Benchmarking flymodel_mnist20/train_one: Collecting 100 samples in estimated 5.0879 s (187k iterations)
+Benchmarking flymodel_mnist20/train_one: Analyzing
+flymodel_mnist20/train_one
+                        time:   [14.509 µs 14.545 µs 14.580 µs]
+                        thrpt:  [68.586 Kelem/s 68.751 Kelem/s 68.921 Kelem/s]
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high mild
+Benchmarking flymodel_mnist20/predict
+Benchmarking flymodel_mnist20/predict: Warming up for 3.0000 s
+Benchmarking flymodel_mnist20/predict: Collecting 100 samples in estimated 5.0276 s (308k iterations)
+Benchmarking flymodel_mnist20/predict: Analyzing
+flymodel_mnist20/predict
+                        time:   [16.311 µs 16.332 µs 16.354 µs]
+                        thrpt:  [61.148 Kelem/s 61.230 Kelem/s 61.309 Kelem/s]
+Found 3 outliers among 100 measurements (3.00%)
+  1 (1.00%) low mild
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+

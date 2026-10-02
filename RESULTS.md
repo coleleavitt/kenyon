@@ -139,4 +139,188 @@ No bar is set. Numbers are machine-specific.
 
 ## Part 2: results
 
-(filled after the runs; see below)
+Raw outputs:
+- `results/r1_flyhash.{md,json}`, `results/r2_bloom_{sift,odors}.{md,json}`;
+- `results/r3_flymodel.{md,json}` (`r3_flymodel_enc0.json`), `results/encoder_s0.log`;
+- `results/memory.md`, `results/bench.txt`.
+
+### Summary table (published vs ours)
+
+| # | Claim | Published | Ours | Verdict (±2 pts) |
+|---|---|---|---|---|
+| R1 | FlyHash mAP, MNIST, k = 4 | 44.8 | **10.4** (predeclared AP/R) · 40.1 (AP/hits) | **fail** as predeclared; **partial** (−4.7) under the hits-normalised definition |
+| R1 | LSH mAP, MNIST, k = 4 | 16.0 | 3.5 (AP/R) · **16.8** (AP/hits) | fail (AP/R); **reproduced** (AP/hits) |
+| R1 | fly ≫ LSH at k = 4 | 2.8× | 2.4× (AP/hits), 3.0× (AP/R) | qualitative **reproduced** |
+| R2 | fly BF novelty r, SIFT | 0.535 ± 0.03 | 0.609 (best k = 50) · 0.569 (mean over k) · 0.552 at k = 10 | **fail high** (+7.4) / **partial** (+3.4): ours is *better* than published |
+| R2 | LSBF r, SIFT | 0.345 ± 0.03 | 0.17–0.39 over k (0.371 at k = 40) | in range (k-dependent) |
+| R2 | classical BF r, SIFT | 0.002 ± 0.02 | 0.008 (k = 50), −0.008…0.015 | **reproduced** |
+| R2 | fly BF r, odours (k = 40) | 0.657 ± 0.06 | 0.630 ± 0.048 | **partial** (−2.7) |
+| R2 | LSBF r, odours (k = 40) | 0.537 ± 0.08 | 0.547 | **reproduced** |
+| R3 | FlyModel acc after 10 classes | 0.86 ± 0.0006 | 0.889 ± 0.003 (0.860 with a 1-epoch encoder) | **partial high** (+2.9); encoder-sensitive |
+| R3 | FlyModel acc after 20 classes | 0.75 | 0.754 ± 0.002 | **reproduced** |
+| R3 | mean memory loss | 0.07 | 0.066 | **reproduced** |
+| R3 | dense-coding ablation, 20 classes | 0.07 | 0.049 | **partial** (−2.1); collapse reproduced |
+
+### R1 details (50 trials, mean; sd over trials ≈ 0.5–1.6)
+
+| method | k=4 | k=8 | k=16 | k=32 | (AP / hits) k=4 | k=8 | k=16 | k=32 |
+|---|---|---|---|---|---|---|---|---|
+| fly (10d, 10% fan-in, WTA, valued tag) | 10.4 | 13.9 | 16.9 | 20.7 | 40.1 | 44.9 | 47.5 | 51.1 |
+| LSH (k dense Gaussian) | 3.5 | 10.3 | 22.7 | 39.0 | 16.8 | 31.9 | 52.5 | 71.7 |
+| ablation: dense Gaussian 10d + WTA | 9.7 | 12.1 | 14.1 | 17.0 | 39.7 | 42.0 | 42.8 | 45.3 |
+| ablation: no WTA (random tag) | 3.4 | 10.6 | 22.7 | 38.9 | 16.7 | 32.3 | 52.7 | 71.7 |
+| ablation: no expansion (k sparse) | 3.5 | 10.4 | 22.7 | 38.8 | 16.5 | 32.0 | 52.6 | 71.5 |
+| fly binary tag, overlap ranking | 9.7 | 17.6 | 28.5 | 40.2 | 37.0 | 50.1 | 63.3 | 74.0 |
+| *exploratory:* fly, divisive mean = 100 | 8.3 | 13.8 | 19.7 | 26.0 | 35.6 | 45.1 | 53.7 | 61.1 |
+| *exploratory:* SimHash k bits | 0.3 | 0.7 | 2.2 | 5.7 | 5.9 | 8.1 | 13.8 | 24.4 |
+
+Reading:
+- The **controls behave as the paper says**:
+  - a sparse binary expansion matches a dense Gaussian one (Fig. 2A);
+  - removing WTA (random tag), or removing the expansion, falls exactly to LSH (p.9: "effectively
+    the same as just doing k random projections").
+- The **headline gap reproduces** at k = 4: fly ≈ 2.4–3× LSH.
+- **Absolute level depends on the mAP definition.** The predeclared AP/R gives 10.4 and 3.5,
+  nowhere near 44.8 and 16.0. AP normalised by the number of hits gives 40.1 and 16.8. The paper
+  gives no formula, so we read its numbers as hits-normalised (INFERRED from LSH matching to
+  0.8 points).
+- **Not reproduced: "fly > LSH at every k".** With the valued tag and Euclidean ranking that the
+  preprint describes, LSH overtakes the fly at k ≥ 16. The binary fly tag ranked by overlap
+  stays ahead up to k = 16 (63.3 vs 52.5) and ties at k = 32 (74.0 vs 71.7). The valued-tag
+  ranking punishes non-shared winners by their magnitude. INFERRED: the paper's Fig. 3 likely
+  used a different ranking, or binary tags.
+
+### R2 details (fly Bloom filter; SI protocol after amendment A1)
+
+SIFT, n = 5,000 (random from ANN_SIFT10K base), m = 30 n_train = 135,000, 10-fold CV, 3
+projection seeds. Fold-level sd ≈ 0.03–0.05.
+
+| filter | k=5 | k=10 | k=20 | k=40 | k=50 |
+|---|---|---|---|---|---|
+| fly | 0.489 | 0.552 | 0.587 | 0.607 | 0.609 |
+| LSBF (SI Alg. S2) | 0.172 | 0.230 | 0.292 | 0.371 | 0.387 |
+| classical BF | 0.007 | −0.008 | 0.015 | 0.005 | 0.008 |
+| ablation: dense Gaussian expansion + WTA | 0.276 | 0.327 | 0.367 | 0.406 | 0.419 |
+| ablation: no WTA (fixed random tag) | 0 | 0 | 0 | 0 | 0 |
+| fly, m = 10n | 0.453 | 0.514 | 0.540 | 0.551 | 0.555 |
+| fly, pre-SI guessed protocol (centred, 10% fan-in, Euclidean) | 0.473 | 0.508 | 0.547 | 0.561 | 0.559 |
+
+Odours: Hallem 2006, n = 110 (the paper's n), 20 projection seeds. The sd column is over the
+per-seed means.
+
+| filter | k=5 | k=10 | k=20 | k=40 | k=50 |
+|---|---|---|---|---|---|
+| fly (SI) | 0.518 | 0.581 | 0.618 | **0.630** (0.048) | 0.634 |
+| LSBF (SI) | 0.408 | 0.477 | 0.536 | **0.547** | 0.554 |
+| classical BF | −0.025 | −0.034 | −0.004 | −0.010 | 0.016 |
+| dense expansion | 0.391 | 0.457 | 0.513 | 0.520 | 0.529 |
+| *exploratory:* fly, + spontaneous rate | — | — | 0.703 | 0.721 | — |
+| fly, pre-SI guessed protocol (fan-in 2) | — | — | 0.371 | 0.384 | — |
+
+Reading:
+- The **ordering reproduces on both datasets**: fly > LSBF > classical ≈ 0. Odour numbers are
+  within or near ±2 points.
+- **On SIFT our fly filter is better than published.** At every k ≥ 10 it is above 0.535. Possible
+  causes, none verified:
+  - our SIFT is ANN_SIFT10K, not their SIFT subset;
+  - n_train = 4,500 vs 5,000 for m;
+  - seed and fold differences.
+  We report it as a non-reproduction in the favourable direction, not as a success.
+- **Ablations.**
+  - The dense Gaussian expansion is clearly *worse* than the sparse binary one here (0.41 vs
+    0.61 at k = 50). That contradicts the "≈" expectation we predeclared, which was carried over
+    from R1.
+  - Without WTA, novelty carries no information (r = 0 by construction: every item has the same
+    tag).
+- **Fan-in matters on low-d data.** The pre-SI guess (2 inputs per KC for d = 24) loses about
+  0.25. The SI's fixed fan-in of 6 is the right choice.
+
+### R3 details (MNIST-20, 5 random Θ; LeNet5 encoder seed 0, KMNIST test acc 0.9527)
+
+| variant | acc after 10 classes | acc after 20 classes | mean memory loss | sd (10 / 20) |
+|---|---|---|---|---|
+| **FlyModel** (sparse + associative) | **0.889** | **0.754** | **0.066** | 0.003 / 0.002 |
+| ablation: dense coding (no WTA) | 0.098 | 0.049 | 0.000 | 0 / 0 |
+| ablation: perceptron v1 (classic) | 0.118 | 0.104 | 0.501 | 0.011 / 0.013 |
+| ablation: perceptron v2 | 0.155 | 0.101 | 0.683 | 0.008 / 0.003 |
+| ablation: perceptron v3 | 0.166 | 0.191 | 0.572 | 0.007 / 0.010 |
+| ablation: dense + perceptron v1 | 0.101 | 0.050 | 0.453 | 0 / 0 |
+| *exploratory:* no encoder, raw pixels, m = 31,360 | 0.907 | 0.761 | 0.056 | 0.002 / 0.002 |
+| *exploratory:* no encoder, raw pixels, m = 3,200 (capacity-matched) | 0.880 | 0.736 | 0.057 | 0.005 / 0.004 |
+
+The published comparison points, for context only: BI-R 0.77, GEM 0.69, EWC 0.58 after 10
+classes. We did not re-run them.
+
+Reading:
+- The **FlyModel reproduces**: 0.754 after 20 classes, memory loss 0.066.
+- After 10 classes it beats the published 0.86 (0.889). With a weaker 1-epoch encoder (KMNIST
+  0.913) it gives exactly 0.860 (`results/r3_flymodel_encoder_1epoch.md`). The
+  10-class number is encoder-sensitive at the ±3-point level.
+- **Dense coding collapses** (0.049 vs the published 0.07, which is the mean of dense+associative
+  and dense+logistic; we ran only dense+associative).
+- **The perceptron rules forget catastrophically** (v1 0.10 after 20 classes), as Fig. 4 says.
+- **Frozen-encoder control (exploratory).**
+  - A FlyModel on raw pixels with the paper's 40× expansion (m = 31,360) reaches 0.907 / 0.761.
+    It is better than the encoder, but with 10× more KCs.
+  - The capacity-matched raw control (m = 3,200) reaches 0.880 / 0.736, only 1–2 points below
+    the encoder.
+  - On MNIST-20 the "needs a pretrained encoder" caveat (p.11–12) is therefore weaker than
+    stated. CIFAR-100 (not run) is where the paper's encoder matters.
+
+### Deviations (all)
+
+1. **R1 mAP formula.** The preprint gives none. The predeclared AP/R and the alternative
+   AP/hits are both reported. Neighbour ties are broken by a per-trial random item order.
+2. **R1 data.** 10k = the MNIST test set (the paper says only "a subset of 10,000"). The ground
+   truth is Euclidean on raw pixels; hashes use mean-centred inputs.
+3. **R2.** The protocol changed to the SI before the SIFT run (amendment A1, committed).
+   Remaining differences:
+   - SIFT source (ANN_SIFT10K);
+   - n_train for m;
+   - 3 projection seeds;
+   - the LSBF hash is our own mix function, standing in for "a traditional hash function";
+   - the classical BF uses a splitmix hash, standing in for MD5/Murmur.
+4. **R2 odours.** DoOR 2.0's `Hallem.2006.EN` column, not the original table. Without the
+   spontaneous rate (SI is silent); with it, reported as exploratory.
+5. **R3 encoder.** Retrained by us in Rust/candle, with our seeded init, not PyTorch defaults.
+   The batch-norm placement (after every conv/fc except the output) is GUESSED, because the
+   paper says only "with batch normalization". Multithreaded float summation makes the encoder
+   bit-reproducible only on the same machine.
+6. **R3 dense ablation.** Only dense+associative was run (the paper's 0.07 averages two models).
+7. **Bars.** No bar was moved after seeing results. The R2 protocol change is documented above.
+
+### Benchmarks (criterion, single thread, `results/bench.txt`; machine load average ≈ 5 from other jobs)
+
+| operation | time / op | throughput |
+|---|---|---|
+| FlyHash, MNIST (d = 784, m = 7,840, fan-in 78, k = 4) | 221 µs | 4.5 k/s |
+| LSH, MNIST (4 dense projections) | 1.66 µs | 602 k/s |
+| FlyHash, SIFT (d = 128, m = 1,280, fan-in 12, k = 16) | 7.3 µs | 137 k/s |
+| LSH, SIFT (16 dense projections) | 0.63 µs | 1.58 M/s |
+| DenseFly, SIFT (m = 1,280, 64-bit pseudo-hash) | 9.7 µs | 103 k/s |
+| FlyIndex query, 10k items, overlap, top-100 | 71 µs | 14 k/s |
+| FlyIndex query, 10k items, valued Euclidean scan, top-100 | 1.25 ms | 0.8 k/s |
+| FlyBloom insert (pre-hashed, k = 20, m = 150k) | 35 ns | 28 M/s |
+| FlyBloom novelty (pre-hashed) | 33 ns | 30 M/s |
+| FlyBloom observe (hash + score + insert, d = 128, m = 150k) | 742 µs | 1.3 k/s |
+| FlyModel train_one (84 → 3,200 → 20) | 14.5 µs | 69 k/s |
+| FlyModel predict | 16.3 µs | 61 k/s |
+
+Memory (`results/memory.md`, from `memory_bytes()`):
+
+| structure | bytes |
+|---|---|
+| FlyHash projection, MNIST (7,840 KCs × 78 claws) | 2.48 MB |
+| FlyHash projection, SIFT (1,280 × 12) | 66.6 KB |
+| FlyIndex, 10k items, k = 16 | 2.61 MB (261 B/item incl. postings) |
+| FlyBloom m = 150k, static | 4.8 MB (projection 4.2 MB + f32 cells 0.6 MB) |
+| FlyBloom m = 150k, with recovery | 6.0 MB (adds u64 timestamps) |
+| FlyModel MNIST-20 | 397 KB |
+
+Reading:
+- **Cost per hash.** The paper's "20× cheaper" (preprint p.8) is per projection. With a 10d
+  expansion and 10% fan-in, a FlyHash *hash* does 611k additions, against 3,136
+  multiply-adds for 4 LSH projections. It is about 130× slower here.
+- **Storage.** The fly Bloom filter stores f32 cells, not bits. A classical m = 150k filter is
+  18.75 KB. The projection matrix dominates memory.
+- **Open optimisation (not done):** a bit-packed static filter and u16 claw indices.

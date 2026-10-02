@@ -55,13 +55,36 @@ valued-tag metric.
 Bars were predeclared in RESULTS.md part 1 (commit `ace57ec`) before any run. Tolerance is ±2
 points.
 
-<!-- RESULTS-SUMMARY -->
+| Claim | Published | Ours | Verdict |
+|---|---|---|---|
+| FlyHash vs LSH, MNIST k = 4 (mAP %) | 44.8 vs 16.0 | 40.1 vs 16.8 (hits-normalised AP); 10.4 vs 3.5 (predeclared AP/R) | ratio reproduced; level partial (−4.7) or fail, depending on the mAP formula |
+| Fly Bloom filter novelty r, SIFT | 0.535 | 0.49–0.61 over k | not reproduced: **higher** than published |
+| Fly Bloom filter r, odours, k = 40 | 0.657 (LSBF 0.537) | 0.630 (LSBF 0.547) | partial (−2.7); LSBF reproduced |
+| FlyModel MNIST-20, after 10 / 20 classes | 0.86 / 0.75 | 0.889 / 0.754 | 20 classes reproduced; 10 classes +2.9 (encoder-sensitive) |
+| Dense-coding ablation, 20 classes | 0.07 | 0.049 | collapse reproduced (−2.1) |
+
+All the ablations behave as the papers say:
+- random tag or no expansion → LSH level;
+- dense coding → collapse;
+- perceptron rules → forgetting.
+
+Two findings go against the papers' framing:
+- Valued-tag FlyHash loses to LSH at k ≥ 16.
+- On MNIST-20, a capacity-matched FlyModel on raw pixels is only 1–2 points below the
+  pretrained encoder.
 
 ## Wiring study
 
 [research/wiring/PAPER.md](research/wiring/PAPER.md) asks whether the real FlyWire v783 PN→KC
 wiring (285 PNs → 4,723 KCs) hashes better than random wiring with the same degrees. It was
 preregistered in [research/wiring/PREREG.md](research/wiring/PREREG.md).
+
+The answer is **no**:
+- **Generic inputs.** Real wiring is slightly worse than its degree-preserving null: −0.016
+  mAP pooled, −0.006 in one hemisphere.
+- **The degree sequence.** The skewed PN out-degree is what matters. It costs about 4–5 mAP
+  points on generic inputs and gains about 2 on odours.
+- **Novelty.** No robust difference.
 
 ## Regenerate everything
 

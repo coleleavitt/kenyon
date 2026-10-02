@@ -63,25 +63,32 @@ fn main() -> Result<()> {
         di.memory_bytes(),
         di.n_bins()
     );
-    let bh = FlyHash::new(FlyHashParams {
-        n_inputs: 128,
-        n_kc: 150_000,
-        fan_in: 6,
-        k: 20,
-        preprocess: Preprocess::UnitNorm,
-        seed: 1,
-    })?;
-    let bf = FlyBloom::new(
-        bh,
-        BloomParams {
-            decay: 0.5,
-            recovery: 1e-4,
-        },
-    )?;
-    println!(
-        "| FlyBloom m=150k (SIFT, 30n for n=5000) | {} | weights f32 + u64 timestamps + projection |",
-        bf.memory_bytes()
-    );
+    for (label, params) in [
+        ("static (delta = epsilon = 0)", BloomParams::STATIC),
+        (
+            "with recovery (epsilon > 0)",
+            BloomParams {
+                decay: 0.5,
+                recovery: 1e-4,
+            },
+        ),
+    ] {
+        let bh = FlyHash::new(FlyHashParams {
+            n_inputs: 128,
+            n_kc: 150_000,
+            fan_in: 6,
+            k: 20,
+            preprocess: Preprocess::UnitNorm,
+            seed: 1,
+        })?;
+        let proj = bh.memory_bytes();
+        let bf = FlyBloom::new(bh, params)?;
+        println!(
+            "| FlyBloom m=150k, {label} | {} | of which projection {proj}; filter cells {} bytes (classical BF: 18,750 bytes) |",
+            bf.memory_bytes(),
+            bf.memory_bytes() - proj
+        );
+    }
     let m = FlyModel::new(FlyModelParams::mnist20(1))?;
     println!(
         "| FlyModel MNIST-20 (84 -> 3200 -> 20) | {} | projection + 20x3200 f32 weights |",

@@ -180,18 +180,32 @@ fn main() -> Result<()> {
     // Frozen-encoder control: raw pixels (m = 40 d, 10% fan-in, l = m/20).
     let trr = load(&feat, true, true)?;
     let ter = load(&feat, true, false)?;
-    let raw = FlyModelParams {
+    // Two raw-pixel controls: m = 40 d (the paper's expansion ratio) and a
+    // capacity-matched m = 3200 (same KCs and active units as the FlyModel).
+    let raw_big = FlyModelParams {
         n_inputs: 784,
         n_kc: 31_360,
         fan_in: 78,
         n_active: 1568,
         ..base
     };
-    let runs: Vec<(Vec<f64>, Vec<f64>)> = (0..5u64)
-        .into_par_iter()
-        .map(|s| run(FlyModelParams { seed: s, ..raw }, &trr, &ter))
-        .collect::<Result<_>>()?;
-    record("ctl_raw_pixels_no_encoder".to_string(), runs);
+    let raw_small = FlyModelParams {
+        n_inputs: 784,
+        n_kc: 3200,
+        fan_in: 78,
+        n_active: 160,
+        ..base
+    };
+    for (name, raw) in [
+        ("ctl_raw_pixels_no_encoder", raw_big),
+        ("ctl_raw_pixels_m3200", raw_small),
+    ] {
+        let runs: Vec<(Vec<f64>, Vec<f64>)> = (0..5u64)
+            .into_par_iter()
+            .map(|s| run(FlyModelParams { seed: s, ..raw }, &trr, &ter))
+            .collect::<Result<_>>()?;
+        record(name.to_string(), runs);
+    }
     let enc = std::fs::read_to_string(feat.join("encoder.txt"))
         .unwrap_or_default()
         .replace('\n', "; ");
