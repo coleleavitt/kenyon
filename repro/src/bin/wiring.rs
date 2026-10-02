@@ -317,13 +317,13 @@ fn study(g: &PnKc, right_only: bool, n_seeds: u64) -> Result<String> {
     let mut odor_pn = vec![0f32; hal.n * n_pn];
     let mut n_driven = 0;
     for (pi, &orig) in pn_idx.iter().enumerate() {
-        if let Some(gl) = glomerulus(&g.pns[orig]) {
-            if let Some(rs) = glom_rate.get(gl) {
-                n_driven += 1;
-                for o in 0..hal.n {
-                    odor_pn[o * n_pn + pi] =
-                        rs.iter().map(|&j| hal.row(o)[j]).sum::<f32>() / rs.len() as f32;
-                }
+        if let Some(gl) = glomerulus(&g.pns[orig])
+            && let Some(rs) = glom_rate.get(gl)
+        {
+            n_driven += 1;
+            for o in 0..hal.n {
+                odor_pn[o * n_pn + pi] =
+                    rs.iter().map(|&j| hal.row(o)[j]).sum::<f32>() / rs.len() as f32;
             }
         }
     }

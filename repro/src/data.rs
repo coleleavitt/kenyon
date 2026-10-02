@@ -71,10 +71,7 @@ pub fn fvecs(path: &Path) -> Result<Matrix> {
     let mut data = Vec::with_capacity(n * d);
     for r in 0..n {
         let s = &b[r * rec + 4..(r + 1) * rec];
-        data.extend(
-            s.chunks_exact(4)
-                .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]])),
-        );
+        data.extend(s.as_chunks::<4>().0.iter().map(|c| f32::from_le_bytes(*c)));
     }
     Ok(Matrix { n, d, data })
 }
@@ -254,10 +251,10 @@ pub fn flywire_pn_kc(dir: &Path) -> Result<PnKc> {
     let mut types: HashMap<String, String> = HashMap::new();
     for l in types_text.lines().skip(1) {
         let mut f = l.split(',');
-        if let (Some(id), Some(t)) = (f.next(), f.next()) {
-            if info.contains_key(id) {
-                types.insert(id.to_string(), t.to_string());
-            }
+        if let (Some(id), Some(t)) = (f.next(), f.next())
+            && info.contains_key(id)
+        {
+            types.insert(id.to_string(), t.to_string());
         }
     }
     let conn = gz_lines(&dir.join("connections.csv.gz"))?;
@@ -327,8 +324,10 @@ pub fn read_f32(path: &Path) -> Result<Matrix> {
     let d = u32::from_le_bytes(b.get(4..8).context("short")?.try_into()?) as usize;
     let body = b.get(8..8 + 4 * n * d).context("truncated feature file")?;
     let data = body
-        .chunks_exact(4)
-        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|c| f32::from_le_bytes(*c))
         .collect();
     Ok(Matrix { n, d, data })
 }

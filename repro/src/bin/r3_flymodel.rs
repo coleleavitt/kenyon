@@ -71,8 +71,8 @@ fn run(p: FlyModelParams, tr: &Split, te: &Split) -> Result<(Vec<f64>, Vec<f64>)
         immediate.push(acc_on(&mut m, &[2 * t, 2 * t + 1])?);
     }
     let mut loss = Vec::new();
-    for t in 0..10 {
-        loss.push(immediate[t] - acc_on(&mut m, &[2 * t, 2 * t + 1])?);
+    for (t, imm) in immediate.iter().enumerate() {
+        loss.push(imm - acc_on(&mut m, &[2 * t, 2 * t + 1])?);
     }
     Ok((seen_acc, loss))
 }
