@@ -19,7 +19,9 @@ pub fn data_dir() -> PathBuf {
 
 /// Output directory for result files (`$KENYON_OUT`, default `results/`).
 pub fn out_dir() -> PathBuf {
-    let p = std::env::var("KENYON_OUT").map(PathBuf::from).unwrap_or_else(|_| PathBuf::from("results"));
+    let p = std::env::var("KENYON_OUT")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("results"));
     let _ = std::fs::create_dir_all(&p);
     p
 }
@@ -47,6 +49,10 @@ impl Matrix {
         for &i in idx {
             data.extend_from_slice(self.row(i));
         }
-        Matrix { n: idx.len(), d: self.d, data }
+        Matrix {
+            n: idx.len(),
+            d: self.d,
+            data,
+        }
     }
 }

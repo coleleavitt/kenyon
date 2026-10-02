@@ -127,8 +127,10 @@ impl FlyBloom {
         self.clock += 1;
         // Active units were updated "at" this insertion: they do not recover
         // from it (Eq. 2 adds epsilon only to inactive KCs).
-        for &u in code.indices() {
-            self.touched[u as usize] = self.clock;
+        if !self.touched.is_empty() {
+            for &u in code.indices() {
+                self.touched[u as usize] = self.clock;
+            }
         }
         Ok(())
     }
@@ -160,7 +162,9 @@ impl FlyBloom {
         self.clock = 0;
     }
 
-    /// Heap bytes held (weights + timestamps + hasher).
+    /// Heap bytes held (weights + timestamps + hasher). Each cell is an `f32`
+    /// (plus a `u64` timestamp when `recovery > 0`), not the single bit of a
+    /// classical Bloom filter: 32-96x the paper's "m bits" storage.
     pub fn memory_bytes(&self) -> usize {
         self.weights.capacity() * 4 + self.touched.capacity() * 8 + self.hasher.memory_bytes()
     }

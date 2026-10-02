@@ -12,7 +12,9 @@ use crate::Matrix;
 fn read_gz(path: &Path) -> Result<Vec<u8>> {
     let f = std::fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
     let mut out = Vec::new();
-    GzDecoder::new(f).read_to_end(&mut out).with_context(|| format!("gunzip {}", path.display()))?;
+    GzDecoder::new(f)
+        .read_to_end(&mut out)
+        .with_context(|| format!("gunzip {}", path.display()))?;
     Ok(out)
 }
 
@@ -29,7 +31,11 @@ pub fn idx_images(path: &Path) -> Result<Matrix> {
     }
     let (n, r, c) = (be_u32(&b, 4)?, be_u32(&b, 8)?, be_u32(&b, 12)?);
     let px = b.get(16..16 + n * r * c).context("truncated IDX images")?;
-    Ok(Matrix { n, d: r * c, data: px.iter().map(|&v| f32::from(v)).collect() })
+    Ok(Matrix {
+        n,
+        d: r * c,
+        data: px.iter().map(|&v| f32::from(v)).collect(),
+    })
 }
 
 /// IDX labels.
@@ -65,7 +71,10 @@ pub fn fvecs(path: &Path) -> Result<Matrix> {
     let mut data = Vec::with_capacity(n * d);
     for r in 0..n {
         let s = &b[r * rec + 4..(r + 1) * rec];
-        data.extend(s.chunks_exact(4).map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]])));
+        data.extend(
+            s.chunks_exact(4)
+                .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]])),
+        );
     }
     Ok(Matrix { n, d, data })
 }
@@ -101,18 +110,29 @@ pub const HALLEM_RECEPTORS: [(&str, &[&str]); 24] = [
 ];
 
 /// Hallem 2006 odour responses: `(odour names, matrix odours x 24 receptors)`,
-/// as absolute rates (response + spontaneous rate), receptor order as in
-/// [`HALLEM_RECEPTORS`]. Only odours with a value for every receptor are kept.
-pub fn hallem(dir: &Path) -> Result<(Vec<String>, Matrix)> {
+/// receptor order as in [`HALLEM_RECEPTORS`]. With `add_spontaneous` the
+/// receptor's spontaneous rate is added (absolute firing rate); otherwise the
+/// values are DoOR's `Hallem.2006.EN` as given (change from spontaneous).
+/// Only odours with a value for every receptor are kept.
+pub fn hallem(dir: &Path, add_spontaneous: bool) -> Result<(Vec<String>, Matrix)> {
     let mut per: Vec<HashMap<String, f32>> = Vec::new();
     let mut sfr: Vec<f32> = Vec::new();
     for (r, _) in HALLEM_RECEPTORS {
         let text = std::fs::read_to_string(dir.join(format!("{r}.csv")))?;
         let mut lines = text.lines();
         let header: Vec<String> = split_csv(lines.next().context("empty csv")?);
-        let col = header.iter().position(|h| h == "Hallem.2006.EN").context("no Hallem column")?;
-        let name_col = header.iter().position(|h| h == "Name").context("no Name column")?;
-        let ik_col = header.iter().position(|h| h == "InChIKey").context("no InChIKey")?;
+        let col = header
+            .iter()
+            .position(|h| h == "Hallem.2006.EN")
+            .context("no Hallem column")?;
+        let name_col = header
+            .iter()
+            .position(|h| h == "Name")
+            .context("no Name column")?;
+        let ik_col = header
+            .iter()
+            .position(|h| h == "InChIKey")
+            .context("no InChIKey")?;
         // Data rows carry an extra leading row-name column (R write.csv2).
         let mut m = HashMap::new();
         let mut spont = None;
@@ -135,19 +155,32 @@ pub fn hallem(dir: &Path) -> Result<(Vec<String>, Matrix)> {
         sfr.push(spont.with_context(|| format!("{r}: no SFR row"))?);
         per.push(m);
     }
-    let mut names: Vec<String> = per[0].keys().filter(|k| per.iter().all(|m| m.contains_key(*k))).cloned().collect();
+    let mut names: Vec<String> = per[0]
+        .keys()
+        .filter(|k| per.iter().all(|m| m.contains_key(*k)))
+        .cloned()
+        .collect();
     names.sort();
     let mut data = Vec::with_capacity(names.len() * 24);
     for n in &names {
         for (j, m) in per.iter().enumerate() {
-            data.push(m[n] + sfr[j]);
+            data.push(m[n] + if add_spontaneous { sfr[j] } else { 0.0 });
         }
     }
-    Ok((names.clone(), Matrix { n: names.len(), d: 24, data }))
+    Ok((
+        names.clone(),
+        Matrix {
+            n: names.len(),
+            d: 24,
+            data,
+        },
+    ))
 }
 
 fn split_csv(line: &str) -> Vec<String> {
-    line.split(';').map(|s| s.trim().trim_matches('"').to_string()).collect()
+    line.split(';')
+        .map(|s| s.trim().trim_matches('"').to_string())
+        .collect()
 }
 
 /// A PN or KC in the FlyWire PN->KC subgraph.
@@ -183,9 +216,22 @@ fn gz_lines(path: &Path) -> Result<String> {
 pub fn flywire_pn_kc(dir: &Path) -> Result<PnKc> {
     let cls_text = gz_lines(&dir.join("classification.csv.gz"))?;
     let mut lines = cls_text.lines();
-    let h: Vec<&str> = lines.next().context("empty classification")?.split(',').collect();
-    let pos = |name: &str| h.iter().position(|c| *c == name).with_context(|| format!("no column {name}"));
-    let (c_id, c_class, c_sub, c_side) = (pos("root_id")?, pos("class")?, pos("sub_class")?, pos("side")?);
+    let h: Vec<&str> = lines
+        .next()
+        .context("empty classification")?
+        .split(',')
+        .collect();
+    let pos = |name: &str| {
+        h.iter()
+            .position(|c| *c == name)
+            .with_context(|| format!("no column {name}"))
+    };
+    let (c_id, c_class, c_sub, c_side) = (
+        pos("root_id")?,
+        pos("class")?,
+        pos("sub_class")?,
+        pos("side")?,
+    );
     let mut info: HashMap<String, (String, String, String)> = HashMap::new();
     for l in lines {
         let f: Vec<&str> = l.split(',').collect();
@@ -194,7 +240,14 @@ pub fn flywire_pn_kc(dir: &Path) -> Result<PnKc> {
         }
         let class = f[c_class];
         if class == "ALPN" || class == "Kenyon_Cell" {
-            info.insert(f[c_id].to_string(), (class.to_string(), f[c_sub].to_string(), f[c_side].to_string()));
+            info.insert(
+                f[c_id].to_string(),
+                (
+                    class.to_string(),
+                    f[c_sub].to_string(),
+                    f[c_side].to_string(),
+                ),
+            );
         }
     }
     let types_text = gz_lines(&dir.join("consolidated_cell_types.csv.gz"))?;
@@ -209,8 +262,16 @@ pub fn flywire_pn_kc(dir: &Path) -> Result<PnKc> {
     }
     let conn = gz_lines(&dir.join("connections.csv.gz"))?;
     let mut lines = conn.lines();
-    let h: Vec<&str> = lines.next().context("empty connections")?.split(',').collect();
-    let pos = |name: &str| h.iter().position(|c| *c == name).with_context(|| format!("no column {name}"));
+    let h: Vec<&str> = lines
+        .next()
+        .context("empty connections")?
+        .split(',')
+        .collect();
+    let pos = |name: &str| {
+        h.iter()
+            .position(|c| *c == name)
+            .with_context(|| format!("no column {name}"))
+    };
     let (c_pre, c_post, c_syn) = (pos("pre_root_id")?, pos("post_root_id")?, pos("syn_count")?);
     let mut pairs: BTreeMap<(String, String), f32> = BTreeMap::new();
     for l in lines {
@@ -221,7 +282,9 @@ pub fn flywire_pn_kc(dir: &Path) -> Result<PnKc> {
         let (a, b) = (f[c_pre], f[c_post]);
         let is = |id: &str, c: &str| info.get(id).is_some_and(|i| i.0 == c);
         if is(a, "ALPN") && is(b, "Kenyon_Cell") {
-            let s: f32 = f[c_syn].parse().with_context(|| format!("syn_count {}", f[c_syn]))?;
+            let s: f32 = f[c_syn]
+                .parse()
+                .with_context(|| format!("syn_count {}", f[c_syn]))?;
             *pairs.entry((a.to_string(), b.to_string())).or_insert(0.0) += s;
         }
     }
@@ -233,7 +296,12 @@ pub fn flywire_pn_kc(dir: &Path) -> Result<PnKc> {
     kc_ids.dedup();
     let cell = |id: &String| {
         let (_, sub, side) = info[id].clone();
-        Cell { root_id: id.clone(), side, sub_class: sub, cell_type: types.get(id).cloned().unwrap_or_default() }
+        Cell {
+            root_id: id.clone(),
+            side,
+            sub_class: sub,
+            cell_type: types.get(id).cloned().unwrap_or_default(),
+        }
     };
     let pns: Vec<Cell> = pn_ids.iter().map(|id| cell(id)).collect();
     let kcs: Vec<Cell> = kc_ids.iter().map(|id| cell(id)).collect();
@@ -249,4 +317,18 @@ pub fn glomerulus(cell: &Cell) -> Option<&str> {
         return None;
     }
     cell.cell_type.split('_').next().filter(|g| !g.is_empty())
+}
+
+/// Read a feature file written by the `encoder` binary
+/// (u32 n, u32 d, then n*d little-endian f32).
+pub fn read_f32(path: &Path) -> Result<Matrix> {
+    let b = std::fs::read(path).with_context(|| format!("read {}", path.display()))?;
+    let n = u32::from_le_bytes(b.get(0..4).context("short")?.try_into()?) as usize;
+    let d = u32::from_le_bytes(b.get(4..8).context("short")?.try_into()?) as usize;
+    let body = b.get(8..8 + 4 * n * d).context("truncated feature file")?;
+    let data = body
+        .chunks_exact(4)
+        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .collect();
+    Ok(Matrix { n, d, data })
 }

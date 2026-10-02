@@ -2,7 +2,18 @@
 //! Protocol and bars: RESULTS.md part 1, R1. Usage: `r1_flyhash [trials]`.
 
 use anyhow::Result;
-use kenyon::{DenseProjection, Expansion, FlyHash, KcCode, Preprocess, Rng, Scratch, SparseProjection, TagRule, wta};
+use kenyon::{
+    DenseProjection,
+    Expansion,
+    FlyHash,
+    KcCode,
+    Preprocess,
+    Rng,
+    Scratch,
+    SparseProjection,
+    TagRule,
+    wta,
+};
 use kenyon_repro::metrics::{average_precision, sq_dist, top_r_by};
 use kenyon_repro::stats::{mean, sd};
 use kenyon_repro::{Matrix, data, data_dir, out_dir};
@@ -24,17 +35,47 @@ struct Method {
 }
 
 const METHODS: [Method; 10] = [
-    Method { name: "fly", rank: Rank::Euclid },
-    Method { name: "lsh", rank: Rank::Euclid },
-    Method { name: "abl_dense_expansion_wta", rank: Rank::Euclid },
-    Method { name: "abl_no_wta_random_tag", rank: Rank::Euclid },
-    Method { name: "abl_no_expansion_sparse", rank: Rank::Euclid },
-    Method { name: "fly_binary_overlap", rank: Rank::Overlap },
+    Method {
+        name: "fly",
+        rank: Rank::Euclid,
+    },
+    Method {
+        name: "lsh",
+        rank: Rank::Euclid,
+    },
+    Method {
+        name: "abl_dense_expansion_wta",
+        rank: Rank::Euclid,
+    },
+    Method {
+        name: "abl_no_wta_random_tag",
+        rank: Rank::Euclid,
+    },
+    Method {
+        name: "abl_no_expansion_sparse",
+        rank: Rank::Euclid,
+    },
+    Method {
+        name: "fly_binary_overlap",
+        rank: Rank::Overlap,
+    },
     // Exploratory (not predeclared): divisive "same mean" pre-processing.
-    Method { name: "x_fly_divisive", rank: Rank::Euclid },
-    Method { name: "x_lsh_divisive", rank: Rank::Euclid },
-    Method { name: "x_fly_binary_divisive", rank: Rank::Overlap },
-    Method { name: "x_lsh_binary_simhash", rank: Rank::Overlap },
+    Method {
+        name: "x_fly_divisive",
+        rank: Rank::Euclid,
+    },
+    Method {
+        name: "x_lsh_divisive",
+        rank: Rank::Euclid,
+    },
+    Method {
+        name: "x_fly_binary_divisive",
+        rank: Rank::Overlap,
+    },
+    Method {
+        name: "x_lsh_binary_simhash",
+        rank: Rank::Overlap,
+    },
 ];
 
 /// Codes for every item for each k, for one method in one trial.
@@ -42,7 +83,11 @@ fn codes_for(method: &str, x: &Matrix, seed: u64) -> Result<Vec<Vec<KcCode>>> {
     let d = x.d;
     let m = 10 * d;
     let fan = d / 10;
-    let pre = if method.contains("divisive") { Preprocess::DivisiveMean(100.0) } else { Preprocess::CenterMean };
+    let pre = if method.contains("divisive") {
+        Preprocess::DivisiveMean(100.0)
+    } else {
+        Preprocess::CenterMean
+    };
     let method = match method {
         "x_fly_divisive" | "x_fly_binary_divisive" => "fly",
         "x_lsh_divisive" => "lsh",
@@ -59,7 +104,13 @@ fn codes_for(method: &str, x: &Matrix, seed: u64) -> Result<Vec<Vec<KcCode>>> {
                 (0..x.n)
                     .map(|i| {
                         let c = h.hash(x.row(i))?;
-                        let on: Vec<u32> = c.values().iter().enumerate().filter(|(_, v)| **v > 0.0).map(|(j, _)| j as u32).collect();
+                        let on: Vec<u32> = c
+                            .values()
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, v)| **v > 0.0)
+                            .map(|(j, _)| j as u32)
+                            .collect();
                         let n = on.len();
                         KcCode::new(k, on, vec![1.0; n])
                     })
@@ -93,7 +144,11 @@ fn codes_for(method: &str, x: &Matrix, seed: u64) -> Result<Vec<Vec<KcCode>>> {
             let fixed: Vec<Vec<u32>> = KS
                 .iter()
                 .map(|&k| {
-                    let mut u: Vec<u32> = tag_rng.sample_distinct(m, k).into_iter().map(|v| v as u32).collect();
+                    let mut u: Vec<u32> = tag_rng
+                        .sample_distinct(m, k)
+                        .into_iter()
+                        .map(|v| v as u32)
+                        .collect();
                     u.sort_unstable();
                     u
                 })
@@ -119,13 +174,19 @@ fn codes_for(method: &str, x: &Matrix, seed: u64) -> Result<Vec<Vec<KcCode>>> {
                     },
                 )
                 .collect::<kenyon::Result<_>>()?;
-            Ok((0..KS.len()).map(|ki| per_item.iter().map(|c| c[ki].clone()).collect()).collect())
+            Ok((0..KS.len())
+                .map(|ki| per_item.iter().map(|c| c[ki].clone()).collect())
+                .collect())
         }
     }
 }
 
 fn main() -> Result<()> {
-    let trials: usize = std::env::args().nth(1).map(|s| s.parse()).transpose()?.unwrap_or(50);
+    let trials: usize = std::env::args()
+        .nth(1)
+        .map(|s| s.parse())
+        .transpose()?
+        .unwrap_or(50);
     let (x, _) = data::mnist_split(&data_dir().join("mnist"), false)?;
     eprintln!("MNIST test: {} x {}", x.n, x.d);
     // results[method][k] = per-trial (ap_r, ap_hits)
@@ -173,7 +234,10 @@ fn main() -> Result<()> {
         );
     }
     let mut json = String::from("{\n  \"experiment\": \"r1_flyhash_mnist\",\n");
-    json += &format!("  \"trials\": {trials},\n  \"n\": {}, \"queries\": {N_QUERIES}, \"r\": {R},\n  \"rows\": [\n", x.n);
+    json += &format!(
+        "  \"trials\": {trials},\n  \"n\": {}, \"queries\": {N_QUERIES}, \"r\": {R},\n  \"rows\": [\n",
+        x.n
+    );
     println!("| method | k | mAP (AP@200 / 200) % | sd | mAP (/ hits) % |");
     println!("|---|---|---|---|---|");
     let mut rows = Vec::new();
@@ -181,7 +245,13 @@ fn main() -> Result<()> {
         for (ki, &k) in KS.iter().enumerate() {
             let a: Vec<f64> = res[mi][ki].iter().map(|p| 100.0 * p.0).collect();
             let b: Vec<f64> = res[mi][ki].iter().map(|p| 100.0 * p.1).collect();
-            println!("| {} | {k} | {:.1} | {:.2} | {:.1} |", m.name, mean(&a), sd(&a), mean(&b));
+            println!(
+                "| {} | {k} | {:.1} | {:.2} | {:.1} |",
+                m.name,
+                mean(&a),
+                sd(&a),
+                mean(&b)
+            );
             rows.push(format!(
                 "    {{\"method\": \"{}\", \"k\": {k}, \"map_r\": {:.4}, \"map_r_sd\": {:.4}, \"map_hits\": {:.4}, \"map_hits_sd\": {:.4}}}",
                 m.name,

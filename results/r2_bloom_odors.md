@@ -1,102 +1,102 @@
-| dataset | method | k | r (mean) | sd |
-|---|---|---|---|---|
-| hallem110 | abl_dense_expansion | 5 | 0.493 | 0.260 |
-| hallem110 | abl_dense_expansion | 10 | 0.543 | 0.229 |
-| hallem110 | abl_dense_expansion | 15 | 0.549 | 0.235 |
-| hallem110 | abl_dense_expansion | 20 | 0.570 | 0.228 |
-| hallem110 | abl_dense_expansion | 25 | 0.572 | 0.221 |
-| hallem110 | abl_dense_expansion | 30 | 0.571 | 0.215 |
-| hallem110 | abl_dense_expansion | 35 | 0.565 | 0.216 |
-| hallem110 | abl_dense_expansion | 40 | 0.571 | 0.221 |
-| hallem110 | abl_dense_expansion | 45 | 0.582 | 0.202 |
-| hallem110 | abl_dense_expansion | 50 | 0.576 | 0.205 |
-| hallem110 | abl_no_wta_random_tag | 5 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 10 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 15 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 20 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 25 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 30 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 35 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 40 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 45 | 0.000 | 0.000 |
-| hallem110 | abl_no_wta_random_tag | 50 | 0.000 | 0.000 |
-| hallem110 | classic_bloom | 5 | 0.006 | 0.311 |
-| hallem110 | classic_bloom | 10 | -0.018 | 0.315 |
-| hallem110 | classic_bloom | 15 | -0.010 | 0.311 |
-| hallem110 | classic_bloom | 20 | -0.016 | 0.326 |
-| hallem110 | classic_bloom | 25 | -0.019 | 0.319 |
-| hallem110 | classic_bloom | 30 | 0.012 | 0.325 |
-| hallem110 | classic_bloom | 35 | -0.001 | 0.305 |
-| hallem110 | classic_bloom | 40 | -0.001 | 0.313 |
-| hallem110 | classic_bloom | 45 | -0.003 | 0.311 |
-| hallem110 | classic_bloom | 50 | 0.009 | 0.300 |
-| hallem110 | fly | 5 | 0.333 | 0.266 |
-| hallem110 | fly | 10 | 0.348 | 0.270 |
-| hallem110 | fly | 15 | 0.366 | 0.269 |
-| hallem110 | fly | 20 | 0.371 | 0.290 |
-| hallem110 | fly | 25 | 0.384 | 0.290 |
-| hallem110 | fly | 30 | 0.395 | 0.286 |
-| hallem110 | fly | 35 | 0.398 | 0.287 |
-| hallem110 | fly | 40 | 0.384 | 0.301 |
-| hallem110 | fly | 45 | 0.374 | 0.308 |
-| hallem110 | fly | 50 | 0.362 | 0.316 |
-| hallem110 | lsbf_best_b | 5 | 0.499 | 0.251 |
-| hallem110 | lsbf_best_b | 10 | 0.559 | 0.235 |
-| hallem110 | lsbf_best_b | 15 | 0.591 | 0.202 |
-| hallem110 | lsbf_best_b | 20 | 0.610 | 0.216 |
-| hallem110 | lsbf_best_b | 25 | 0.617 | 0.205 |
-| hallem110 | lsbf_best_b | 30 | 0.625 | 0.191 |
-| hallem110 | lsbf_best_b | 35 | 0.612 | 0.191 |
-| hallem110 | lsbf_best_b | 40 | 0.611 | 0.210 |
-| hallem110 | lsbf_best_b | 45 | 0.620 | 0.189 |
-| hallem110 | lsbf_best_b | 50 | 0.620 | 0.194 |
-| hallem110_fanin6 | abl_dense_expansion | 5 | 0.493 | 0.260 |
-| hallem110_fanin6 | abl_dense_expansion | 10 | 0.543 | 0.229 |
-| hallem110_fanin6 | abl_dense_expansion | 15 | 0.549 | 0.235 |
-| hallem110_fanin6 | abl_dense_expansion | 20 | 0.570 | 0.228 |
-| hallem110_fanin6 | abl_dense_expansion | 25 | 0.572 | 0.221 |
-| hallem110_fanin6 | abl_dense_expansion | 30 | 0.571 | 0.215 |
-| hallem110_fanin6 | abl_dense_expansion | 35 | 0.565 | 0.216 |
-| hallem110_fanin6 | abl_dense_expansion | 40 | 0.571 | 0.221 |
-| hallem110_fanin6 | abl_dense_expansion | 45 | 0.582 | 0.202 |
-| hallem110_fanin6 | abl_dense_expansion | 50 | 0.576 | 0.205 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 5 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 10 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 15 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 20 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 25 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 30 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 35 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 40 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 45 | 0.000 | 0.000 |
-| hallem110_fanin6 | abl_no_wta_random_tag | 50 | 0.000 | 0.000 |
-| hallem110_fanin6 | classic_bloom | 5 | 0.006 | 0.311 |
-| hallem110_fanin6 | classic_bloom | 10 | -0.018 | 0.315 |
-| hallem110_fanin6 | classic_bloom | 15 | -0.010 | 0.311 |
-| hallem110_fanin6 | classic_bloom | 20 | -0.016 | 0.326 |
-| hallem110_fanin6 | classic_bloom | 25 | -0.019 | 0.319 |
-| hallem110_fanin6 | classic_bloom | 30 | 0.012 | 0.325 |
-| hallem110_fanin6 | classic_bloom | 35 | -0.001 | 0.305 |
-| hallem110_fanin6 | classic_bloom | 40 | -0.001 | 0.313 |
-| hallem110_fanin6 | classic_bloom | 45 | -0.003 | 0.311 |
-| hallem110_fanin6 | classic_bloom | 50 | 0.009 | 0.300 |
-| hallem110_fanin6 | fly | 5 | 0.551 | 0.249 |
-| hallem110_fanin6 | fly | 10 | 0.558 | 0.222 |
-| hallem110_fanin6 | fly | 15 | 0.574 | 0.222 |
-| hallem110_fanin6 | fly | 20 | 0.588 | 0.214 |
-| hallem110_fanin6 | fly | 25 | 0.587 | 0.218 |
-| hallem110_fanin6 | fly | 30 | 0.593 | 0.214 |
-| hallem110_fanin6 | fly | 35 | 0.591 | 0.225 |
-| hallem110_fanin6 | fly | 40 | 0.583 | 0.227 |
-| hallem110_fanin6 | fly | 45 | 0.579 | 0.216 |
-| hallem110_fanin6 | fly | 50 | 0.582 | 0.205 |
-| hallem110_fanin6 | lsbf_best_b | 5 | 0.499 | 0.251 |
-| hallem110_fanin6 | lsbf_best_b | 10 | 0.559 | 0.235 |
-| hallem110_fanin6 | lsbf_best_b | 15 | 0.591 | 0.202 |
-| hallem110_fanin6 | lsbf_best_b | 20 | 0.610 | 0.216 |
-| hallem110_fanin6 | lsbf_best_b | 25 | 0.617 | 0.205 |
-| hallem110_fanin6 | lsbf_best_b | 30 | 0.625 | 0.191 |
-| hallem110_fanin6 | lsbf_best_b | 35 | 0.612 | 0.191 |
-| hallem110_fanin6 | lsbf_best_b | 40 | 0.611 | 0.210 |
-| hallem110_fanin6 | lsbf_best_b | 45 | 0.620 | 0.189 |
-| hallem110_fanin6 | lsbf_best_b | 50 | 0.620 | 0.194 |
+| dataset | method | k | r (mean) | sd (folds) | sd (seed means) |
+|---|---|---|---|---|---|
+| hallem110 | abl_dense_expansion | 5 | 0.391 | 0.344 | 0.095 |
+| hallem110 | abl_dense_expansion | 10 | 0.457 | 0.337 | 0.094 |
+| hallem110 | abl_dense_expansion | 20 | 0.513 | 0.314 | 0.072 |
+| hallem110 | abl_dense_expansion | 40 | 0.520 | 0.320 | 0.065 |
+| hallem110 | abl_dense_expansion | 50 | 0.529 | 0.320 | 0.074 |
+| hallem110 | abl_no_wta_random_tag | 5 | 0.000 | 0.000 | NaN |
+| hallem110 | abl_no_wta_random_tag | 10 | 0.000 | 0.000 | NaN |
+| hallem110 | abl_no_wta_random_tag | 20 | 0.000 | 0.000 | NaN |
+| hallem110 | abl_no_wta_random_tag | 40 | 0.000 | 0.000 | NaN |
+| hallem110 | abl_no_wta_random_tag | 50 | 0.000 | 0.000 | NaN |
+| hallem110 | classic_bloom | 5 | -0.025 | 0.317 | 0.116 |
+| hallem110 | classic_bloom | 10 | -0.034 | 0.318 | 0.094 |
+| hallem110 | classic_bloom | 20 | -0.004 | 0.322 | 0.087 |
+| hallem110 | classic_bloom | 40 | -0.010 | 0.290 | 0.094 |
+| hallem110 | classic_bloom | 50 | 0.016 | 0.275 | 0.080 |
+| hallem110 | fly | 5 | 0.518 | 0.226 | 0.062 |
+| hallem110 | fly | 10 | 0.581 | 0.210 | 0.075 |
+| hallem110 | fly | 20 | 0.618 | 0.217 | 0.070 |
+| hallem110 | fly | 40 | 0.630 | 0.226 | 0.048 |
+| hallem110 | fly | 50 | 0.634 | 0.222 | 0.048 |
+| hallem110 | lsbf | 5 | 0.408 | 0.289 | 0.079 |
+| hallem110 | lsbf | 10 | 0.477 | 0.278 | 0.082 |
+| hallem110 | lsbf | 20 | 0.536 | 0.257 | 0.075 |
+| hallem110 | lsbf | 40 | 0.547 | 0.251 | 0.078 |
+| hallem110 | lsbf | 50 | 0.554 | 0.243 | 0.074 |
+| hallem110_m10n | abl_dense_expansion | 5 | 0.357 | 0.349 | 0.087 |
+| hallem110_m10n | abl_dense_expansion | 10 | 0.412 | 0.331 | 0.085 |
+| hallem110_m10n | abl_dense_expansion | 20 | 0.455 | 0.333 | 0.074 |
+| hallem110_m10n | abl_dense_expansion | 40 | 0.477 | 0.318 | 0.068 |
+| hallem110_m10n | abl_dense_expansion | 50 | 0.473 | 0.333 | 0.067 |
+| hallem110_m10n | abl_no_wta_random_tag | 5 | 0.000 | 0.000 | NaN |
+| hallem110_m10n | abl_no_wta_random_tag | 10 | 0.000 | 0.000 | NaN |
+| hallem110_m10n | abl_no_wta_random_tag | 20 | 0.000 | 0.000 | NaN |
+| hallem110_m10n | abl_no_wta_random_tag | 40 | 0.000 | 0.000 | NaN |
+| hallem110_m10n | abl_no_wta_random_tag | 50 | 0.000 | 0.000 | NaN |
+| hallem110_m10n | classic_bloom | 5 | 0.026 | 0.316 | 0.115 |
+| hallem110_m10n | classic_bloom | 10 | 0.015 | 0.304 | 0.071 |
+| hallem110_m10n | classic_bloom | 20 | 0.025 | 0.312 | 0.144 |
+| hallem110_m10n | classic_bloom | 40 | -0.029 | 0.338 | 0.100 |
+| hallem110_m10n | classic_bloom | 50 | 0.005 | 0.297 | 0.070 |
+| hallem110_m10n | fly | 5 | 0.488 | 0.256 | 0.077 |
+| hallem110_m10n | fly | 10 | 0.537 | 0.245 | 0.067 |
+| hallem110_m10n | fly | 20 | 0.569 | 0.246 | 0.048 |
+| hallem110_m10n | fly | 40 | 0.552 | 0.266 | 0.045 |
+| hallem110_m10n | fly | 50 | 0.525 | 0.289 | 0.064 |
+| hallem110_m10n | lsbf | 5 | 0.373 | 0.292 | 0.075 |
+| hallem110_m10n | lsbf | 10 | 0.410 | 0.284 | 0.106 |
+| hallem110_m10n | lsbf | 20 | 0.428 | 0.286 | 0.096 |
+| hallem110_m10n | lsbf | 40 | 0.350 | 0.310 | 0.100 |
+| hallem110_m10n | lsbf | 50 | 0.294 | 0.309 | 0.121 |
+| hallem110_with_sfr | abl_dense_expansion | 5 | 0.450 | 0.306 | 0.091 |
+| hallem110_with_sfr | abl_dense_expansion | 10 | 0.500 | 0.295 | 0.077 |
+| hallem110_with_sfr | abl_dense_expansion | 20 | 0.556 | 0.275 | 0.069 |
+| hallem110_with_sfr | abl_dense_expansion | 40 | 0.607 | 0.273 | 0.063 |
+| hallem110_with_sfr | abl_dense_expansion | 50 | 0.609 | 0.258 | 0.045 |
+| hallem110_with_sfr | abl_no_wta_random_tag | 5 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr | abl_no_wta_random_tag | 10 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr | abl_no_wta_random_tag | 20 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr | abl_no_wta_random_tag | 40 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr | abl_no_wta_random_tag | 50 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr | classic_bloom | 5 | 0.027 | 0.305 | 0.079 |
+| hallem110_with_sfr | classic_bloom | 10 | 0.017 | 0.313 | 0.110 |
+| hallem110_with_sfr | classic_bloom | 20 | -0.021 | 0.333 | 0.084 |
+| hallem110_with_sfr | classic_bloom | 40 | -0.014 | 0.290 | 0.110 |
+| hallem110_with_sfr | classic_bloom | 50 | 0.006 | 0.301 | 0.116 |
+| hallem110_with_sfr | fly | 5 | 0.645 | 0.189 | 0.036 |
+| hallem110_with_sfr | fly | 10 | 0.669 | 0.189 | 0.053 |
+| hallem110_with_sfr | fly | 20 | 0.703 | 0.195 | 0.051 |
+| hallem110_with_sfr | fly | 40 | 0.721 | 0.182 | 0.043 |
+| hallem110_with_sfr | fly | 50 | 0.719 | 0.176 | 0.044 |
+| hallem110_with_sfr | lsbf | 5 | 0.527 | 0.264 | 0.084 |
+| hallem110_with_sfr | lsbf | 10 | 0.591 | 0.241 | 0.066 |
+| hallem110_with_sfr | lsbf | 20 | 0.665 | 0.192 | 0.060 |
+| hallem110_with_sfr | lsbf | 40 | 0.707 | 0.173 | 0.055 |
+| hallem110_with_sfr | lsbf | 50 | 0.713 | 0.171 | 0.052 |
+| hallem110_with_sfr_prereg_guess | abl_dense_expansion | 5 | 0.493 | 0.260 | 0.092 |
+| hallem110_with_sfr_prereg_guess | abl_dense_expansion | 10 | 0.543 | 0.229 | 0.069 |
+| hallem110_with_sfr_prereg_guess | abl_dense_expansion | 20 | 0.570 | 0.228 | 0.065 |
+| hallem110_with_sfr_prereg_guess | abl_dense_expansion | 40 | 0.571 | 0.221 | 0.055 |
+| hallem110_with_sfr_prereg_guess | abl_dense_expansion | 50 | 0.576 | 0.205 | 0.045 |
+| hallem110_with_sfr_prereg_guess | abl_no_wta_random_tag | 5 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr_prereg_guess | abl_no_wta_random_tag | 10 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr_prereg_guess | abl_no_wta_random_tag | 20 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr_prereg_guess | abl_no_wta_random_tag | 40 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr_prereg_guess | abl_no_wta_random_tag | 50 | 0.000 | 0.000 | NaN |
+| hallem110_with_sfr_prereg_guess | classic_bloom | 5 | 0.006 | 0.311 | 0.089 |
+| hallem110_with_sfr_prereg_guess | classic_bloom | 10 | -0.018 | 0.315 | 0.120 |
+| hallem110_with_sfr_prereg_guess | classic_bloom | 20 | -0.016 | 0.326 | 0.107 |
+| hallem110_with_sfr_prereg_guess | classic_bloom | 40 | -0.001 | 0.313 | 0.121 |
+| hallem110_with_sfr_prereg_guess | classic_bloom | 50 | 0.009 | 0.300 | 0.120 |
+| hallem110_with_sfr_prereg_guess | fly | 5 | 0.333 | 0.266 | 0.057 |
+| hallem110_with_sfr_prereg_guess | fly | 10 | 0.348 | 0.270 | 0.062 |
+| hallem110_with_sfr_prereg_guess | fly | 20 | 0.371 | 0.290 | 0.042 |
+| hallem110_with_sfr_prereg_guess | fly | 40 | 0.384 | 0.301 | 0.046 |
+| hallem110_with_sfr_prereg_guess | fly | 50 | 0.362 | 0.316 | 0.049 |
+| hallem110_with_sfr_prereg_guess | lsbf | 5 | 0.446 | 0.267 | 0.072 |
+| hallem110_with_sfr_prereg_guess | lsbf | 10 | 0.525 | 0.224 | 0.044 |
+| hallem110_with_sfr_prereg_guess | lsbf | 20 | 0.585 | 0.193 | 0.044 |
+| hallem110_with_sfr_prereg_guess | lsbf | 40 | 0.633 | 0.172 | 0.027 |
+| hallem110_with_sfr_prereg_guess | lsbf | 50 | 0.624 | 0.172 | 0.043 |

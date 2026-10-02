@@ -4,7 +4,11 @@ use kenyon::Rng;
 
 /// Mean (0 for empty).
 pub fn mean(x: &[f64]) -> f64 {
-    if x.is_empty() { 0.0 } else { x.iter().sum::<f64>() / x.len() as f64 }
+    if x.is_empty() {
+        0.0
+    } else {
+        x.iter().sum::<f64>() / x.len() as f64
+    }
 }
 
 /// Sample standard deviation (n - 1).
@@ -19,8 +23,9 @@ pub fn sd(x: &[f64]) -> f64 {
 /// Two-sided 97.5% quantile of Student's t with `df` degrees of freedom.
 pub fn t975(df: usize) -> f64 {
     const T: [f64; 30] = [
-        12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160, 2.145, 2.131,
-        2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042,
+        12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160,
+        2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056,
+        2.052, 2.048, 2.045, 2.042,
     ];
     match df {
         0 => f64::NAN,
@@ -74,7 +79,14 @@ pub fn paired(a: &[f64], b: &[f64], seed: u64) -> Paired {
     let (t_lo, t_hi) = t_ci(&d);
     let (boot_lo, boot_hi) = bootstrap_ci(&d, 10_000, seed);
     let s = sd(&d);
-    Paired { mean_diff: mean(&d), t_lo, t_hi, boot_lo, boot_hi, dz: if s > 0.0 { mean(&d) / s } else { f64::NAN } }
+    Paired {
+        mean_diff: mean(&d),
+        t_lo,
+        t_hi,
+        boot_lo,
+        boot_hi,
+        dz: if s > 0.0 { mean(&d) / s } else { f64::NAN },
+    }
 }
 
 #[cfg(test)]

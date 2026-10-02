@@ -16,13 +16,18 @@ pub fn average_precision(predicted: &[u32], truth: &[u32], r: usize) -> (f64, f6
         }
     }
     let denom = r.min(truth.len()).max(1);
-    (sum / denom as f64, if hits == 0 { 0.0 } else { sum / hits as f64 })
+    (
+        sum / denom as f64,
+        if hits == 0 { 0.0 } else { sum / hits as f64 },
+    )
 }
 
 /// Indices of the `r` smallest `dist` values, excluding `exclude`, ordered by
 /// distance and then by `order[i]` (a random rank used to break ties).
 pub fn top_r_by(dist: &[f64], order: &[u32], exclude: usize, r: usize) -> Vec<u32> {
-    let mut idx: Vec<u32> = (0..dist.len() as u32).filter(|&i| i as usize != exclude).collect();
+    let mut idx: Vec<u32> = (0..dist.len() as u32)
+        .filter(|&i| i as usize != exclude)
+        .collect();
     let key = |i: &u32| (dist[*i as usize], order[*i as usize]);
     let cmp = |a: &u32, b: &u32| {
         let (da, oa) = key(a);
@@ -55,7 +60,11 @@ pub fn pearson(x: &[f64], y: &[f64]) -> f64 {
         sxx += (a - mx).powi(2);
         syy += (b - my).powi(2);
     }
-    if sxx == 0.0 || syy == 0.0 { 0.0 } else { sxy / (sxx * syy).sqrt() }
+    if sxx == 0.0 || syy == 0.0 {
+        0.0
+    } else {
+        sxy / (sxx * syy).sqrt()
+    }
 }
 
 /// Squared Euclidean distance.
