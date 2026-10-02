@@ -109,6 +109,28 @@ after an honest attempt is a **failure**, and it is reported as one (doc 31, car
   not available, so encoder quality can move every FlyModel number. We report the encoder's
   KMNIST test accuracy.
 
+### Amendment A1 (2026-10-02, before the SIFT run): R2 protocol from the PNAS SI
+
+The R2 protocol above was written without the SI Appendix. The SI was then retrieved from PMC
+(`pnas.1814448115.sapp.pdf`). It specifies the settings that R2 had marked GUESSED. Only the
+odour secondary had been run under the guessed protocol by then (fly r = 0.38 with fan-in 2 and
+r = 0.59 with fan-in 6, k = 40). The SIFT primary had **not** been run. From now on R2 follows the
+SI:
+
+- Pre-processing: each item scaled to unit L2 norm, with no centring (SI l.100–101).
+- Ground truth: min **cosine distance** to the stored set (SI l.101–103), not Euclidean.
+- Fly projection: each KC sums **6** random inputs (SI l.88–93; Alg. S3).
+- k ∈ {5, 10, 20, 40, 50}; m ∈ {10n, 30n} (SI l.107–108). m = 30n is primary, with n the number
+  of stored items.
+- Classical BF: k independent hashes mod m (Alg. S1).
+- LSBF (Alg. S2): k Gaussian d × 5 projections of the unit-norm input; each is quantised by
+  floor((s + 0)/1) and the integer vector is hashed mod m. This replaces the predeclared
+  K&M-block LSBF with a b-sweep.
+- Odours: the dataset values as given (`Hallem.2006.EN`). The SI does not mention adding the
+  spontaneous rate. With the spontaneous rate added is reported as exploratory.
+- The bars are unchanged.
+- The guessed (pre-SI) protocol is still run and reported, as `*_prereg_guess`.
+
 ### Benchmarks
 
 Measured with criterion (`cargo bench`): single-thread throughput for hashing, index query,
