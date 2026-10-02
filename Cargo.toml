@@ -1,0 +1,39 @@
+[package]
+name = "kenyon"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+description = "Fruit-fly mushroom-body algorithms: FlyHash, DenseFly, the fly Bloom filter (novelty with decay) and the FlyModel continual learner."
+keywords = ["lsh", "hashing", "novelty-detection", "continual-learning", "bio-inspired"]
+categories = ["algorithms", "science"]
+readme = "README.md"
+publish = false # the operator decides on crates.io publication
+
+[workspace]
+members = [".", "repro"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+
+[lints]
+workspace = true
+
+[dependencies]
+thiserror = "2"
+
+[dev-dependencies]
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "throughput"
+harness = false
+
+[profile.release]
+debug = 1
+
+[profile.bench]
+debug = 1
