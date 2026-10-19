@@ -26,6 +26,7 @@ fi
 timeout 7200 $B/r3_flymodel 0 > "$KENYON_OUT/r3_flymodel.md" 2> "$KENYON_OUT/r3_flymodel.log"
 echo "== Wiring study (20 seeds)"
 timeout 3600 $B/wiring 20 > "$KENYON_OUT/wiring.md" 2> "$KENYON_OUT/wiring.log"
+timeout 1800 $B/flyrag_eval 20 > "$KENYON_OUT/flyrag.md" 2> "$KENYON_OUT/flyrag.log"
 echo "== Memory"
 $B/memory > "$KENYON_OUT/memory.md"
 echo "== Throughput (criterion; single thread)"
