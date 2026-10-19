@@ -69,12 +69,16 @@ Composition rules:
   latency; predeclared verdict "mixed" (best re-ranked FlyIndex within 0.062 recall).
 - **Before crates.io:** flip `publish`; consider multi-probe FlyHash and SIMD popcount.
 - **Wiring paper:** MCNS replication done (confirmatory claim replicates; odour degree benefit
-  does not); post-hoc Holm/BH correction done; references checked (Fishilevich & Vosshall 2005
-  still unverified). Before arXiv: a DoOR consensus matrix covering more glomeruli; verify that one
-  reference; ask the Navlakha lab for the exact FlyHash mAP formula and the paper's SIFT subset.
-- **FlyRAG built** (`flyrag/`, `research/flyrag/`): bars 1, 2, 4, 5 met; bar 3 (novelty flag) not
-  met. Next: choose the flag threshold on dev seeds 1000–1004 and re-test as an amendment; a
-  stricter shuffled control; a real-data evaluation; persistence.
+  does not); post-hoc Holm/BH correction done; all 12 references verified (Fishilevich & Vosshall 2005
+  via Crossref, with its 2007 erratum). Before arXiv: a DoOR consensus matrix covering more
+  glomeruli; ask the Navlakha lab for the exact FlyHash mAP formula and the paper's SIFT subset.
+- **FlyRAG built** (`flyrag/`, `research/flyrag/`): bars 1, 2, 4, 5 met. Follow-up (A2/A3): the
+  strict independent-label control gains nothing (the gain is the outcome signal); novelty fails
+  (the first run's score AUC 0.997 was a leak; leak-free 0.64, flag 0.637 after a dev-seed choice).
+  SciFact (`research/flyrag-scifact/`): learning transfers to new queries (+0.022 nDCG@10, no harm
+  on unseen), but base retrieval is 0.065 vs BM25 0.660. Next: an IDF-weighted text front end, or
+  FlyRAG as a re-ranking layer over BM25 (each preregistered); novelty against stored documents;
+  persistence.
 - **FlyRAG design notes** (design input: `~/RustProjects/active/ckl/docs/replacement/31-fly-ideas.md`
   idea 4; the same core idea is built and tested as ckl's B2 graph,
   `~/RustProjects/active/ckl/crates/ckl-neocortex/src/graph/`). Retrieval that *learns from verified

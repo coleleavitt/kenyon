@@ -93,11 +93,16 @@ The answer is **no**:
 
 Retrieval that learns from verified usefulness: sparse KC codes for candidates, per-document "use"
 and "skip" readout banks depressed by verified outcomes (bounded, prediction-error driven,
-forward-only, decaying), and a fly Bloom filter novelty score. Preregistered evaluation
-([research/flyrag](research/flyrag/)): learning beats a frozen copy by +0.034 nDCG@10
-[+0.028, +0.040] on a synthetic benchmark where lexical similarity misleads, keeps 83% of its gain
-after learning new topics, and its continuous novelty score separates out-of-domain queries (AUC
-0.997); the preregistered yes/no novelty flag missed its bar (AUC 0.507).
+forward-only, decaying), and a fly Bloom filter novelty score. Preregistered evaluations:
+- **Synthetic** ([research/flyrag](research/flyrag/)), where lexical similarity misleads: learning
+  beats a frozen copy by +0.034 nDCG@10 [+0.028, +0.040], keeps 83% of its gain after learning new
+  topics, and a strict control (labels independent of the documents) gains nothing, so the gain
+  comes from the outcome signal. Novelty detection **failed**: AUC 0.64 once a measurement leak
+  was fixed.
+- **Real text, BEIR SciFact** ([research/flyrag-scifact](research/flyrag-scifact/)): learning on
+  the train queries lifts the separate test queries by +0.022 [+0.016, +0.028] with no harm to
+  unrelated queries, but FlyRAG's base retrieval is far below BM25 (nDCG@10 0.065 vs 0.660). It is
+  a learning layer to put on top of a real retriever, not a retriever yet.
 
 ## Wiring study, replicated
 
