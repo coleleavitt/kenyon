@@ -11,4 +11,7 @@
   dependencies come from crates.io with the lockfile committed. No git dependencies.
 - No destructive commands outside the repo. `scripts/reproduce.sh` writes only into `results/` and
   `target/`.
-- `publish = false` stays until the operator decides; never run `cargo publish` or push.
+- `publish = false` stays until the operator decides; never run `cargo publish`. Push only to
+  `origin` (github.com/coleleavitt/kenyon, private) when the operator asks.
+- The deploy key "flyrag CI (read-only)" on this repo lets FlyRAG's CI fetch kenyon; don't remove
+  it while FlyRAG depends on kenyon by git.
