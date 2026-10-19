@@ -314,8 +314,7 @@ null (doc 31 §0).
 ## References
 
 Checked on 2026-10-19 against the full texts, or the reference lists of papers, in the operator's
-corpus (`~/RustProjects/active/axon/docs/research/papers/`). "Not verified" means no corpus source
-was found; check it before submission.
+corpus (`~/RustProjects/active/axon/docs/research/papers/`), or against Crossref where marked.
 
 - Caron, S. J. C., Ruta, V., Abbott, L. F. & Axel, R. Random convergence of olfactory inputs in
   the *Drosophila* mushroom body. *Nature* 497, 113–117 (2013). doi:10.1038/nature12063.
@@ -334,15 +333,17 @@ was found; check it before submission.
 - Dorkenwald, S. et al. Neuronal wiring diagram of an adult brain. *Nature* 634, 124–138 (2024).
   doi:10.1038/s41586-024-07558-y. [verified: full text]
 - Fishilevich, E. & Vosshall, L. B. Genetic and functional subdivision of the *Drosophila*
-  antennal lobe. *Curr. Biol.* 15, 1548–1553 (2005). [**not verified** in the corpus]
+  antennal lobe. *Curr. Biol.* 15, 1548–1553 (2005). doi:10.1016/j.cub.2005.07.066. Erratum:
+  *Curr. Biol.* 17, 1180 (2007), doi:10.1016/j.cub.2007.06.038. [verified: Crossref metadata;
+  full text not read, and the erratum's content not checked against the receptor table]
 - Hallem, E. A. & Carlson, J. R. Coding of odors by a receptor repertoire. *Cell* 125, 143–160
   (2006). [verified: cited in a corpus paper's reference list]
 - Münch, D. & Galizia, C. G. DoOR 2.0 — comprehensive mapping of *Drosophila melanogaster*
   odorant responses. *Sci. Rep.* 6, 21841 (2016). [verified: cited in a corpus paper's reference
   list]
 - Schlegel, P. et al. Whole-brain annotation and multi-connectome cell typing of *Drosophila*.
-  *Nature* (2024). doi:10.1038/s41586-024-07686-5. [verified: full text; page range not
-  re-checked]
+  *Nature* 634, 139–152 (2024). doi:10.1038/s41586-024-07686-5. [verified: full text; pages
+  from Crossref]
 - Suárez, L. E. et al. Connectome-based reservoir computing with the conn2res toolbox. *Nat.
   Commun.* 15, 656 (2024). doi:10.1038/s41467-024-44900-4. [verified: full text; the claim cited
   is p.9, the fruit-fly panel against 500 rewired nulls]
