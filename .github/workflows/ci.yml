@@ -20,8 +20,8 @@ jobs:
         with:
           components: rustfmt, clippy
       - run: cargo fmt --check
-      - run: cargo clippy -p kenyon -p flyrag --all-targets -- -D warnings
-      - run: RUSTDOCFLAGS="-D warnings" cargo doc -p kenyon -p flyrag --no-deps
+      - run: cargo clippy -p kenyon --all-targets -- -D warnings
+      - run: RUSTDOCFLAGS="-D warnings" cargo doc -p kenyon --no-deps
       # kenyon keeps exactly one runtime dependency.
       - run: scripts/check_deps.sh
 
@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
-      - run: cargo test -p kenyon -p flyrag
+      - run: cargo test -p kenyon
       - run: cargo test -p kenyon --test golden
 
   msrv:
@@ -48,8 +48,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.85.0
-      - run: cargo check -p kenyon -p flyrag --lib
-      - run: cargo test -p kenyon -p flyrag
+      - run: cargo check -p kenyon --lib
+      - run: cargo test -p kenyon
 
   repro:
     # The reproduction harness must keep compiling (it is not run in CI:

@@ -13,5 +13,5 @@
 - Ablations and controls are types or enum variants (`TagRule`, `Coding`, `LearningRule`,
   `DenseProjection`), never boolean flags threaded through functions.
 - `kenyon` keeps one runtime dependency (`thiserror`). Experiment-only crates go in `repro/`; a new
-  feature with heavier needs (e.g. FlyRAG persistence) gets its own workspace crate.
+  feature with heavier needs gets its own workspace crate (FlyRAG grew into its own repo).
 - Keep modules small and named for what they do; no god objects.

@@ -10,9 +10,3 @@ if [ "$deps" != "thiserror" ]; then
   exit 1
 fi
 echo "deps ok: $deps"
-fdeps=$(cargo tree -p flyrag -e normal --depth 1 --prefix none | tail -n +2 | awk '{print $1}' | sort -u | tr '\n' ' ')
-if [ "$fdeps" != "kenyon thiserror " ]; then
-  echo "flyrag runtime dependencies must be exactly 'kenyon thiserror'; found: $fdeps" >&2
-  exit 1
-fi
-echo "flyrag deps ok: $fdeps"

@@ -5,8 +5,8 @@ it. If the two ever disagree, `CLAUDE.md` wins.
 
 **What this is:** a safe, deterministic Rust crate of fruit-fly mushroom-body algorithms (FlyHash,
 DenseFly, fly Bloom filter, FlyModel), a reproduction harness (`repro/`, unpublished) and a
-preregistered FlyWire wiring study (`research/wiring/`). Next planned feature: FlyRAG, as its own
-workspace crate.
+preregistered FlyWire wiring study (`research/wiring/`). FlyRAG, built on kenyon, lives in its
+own repo (github.com/coleleavitt/flyrag).
 
 **Rules that keep the project honest and safe:**
 - No `unsafe`; no `unwrap` outside tests; errors via `KenyonError`; document every public item.

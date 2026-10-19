@@ -89,24 +89,11 @@ The answer is **no**:
   points on generic inputs and gains about 2 on odours.
 - **Novelty.** No robust difference.
 
-## FlyRAG (workspace crate `flyrag`)
+## FlyRAG
 
-Retrieval that learns from verified usefulness: sparse KC codes for candidates, per-document "use"
-and "skip" readout banks depressed by verified outcomes (bounded, prediction-error driven,
-forward-only, decaying), and a fly Bloom filter novelty score. Preregistered evaluations:
-- **Synthetic** ([research/flyrag](research/flyrag/)), where lexical similarity misleads: learning
-  beats a frozen copy by +0.034 nDCG@10 [+0.028, +0.040], keeps 83% of its gain after learning new
-  topics, and a strict control (labels independent of the documents) gains nothing, so the gain
-  comes from the outcome signal. Novelty detection **failed**: AUC 0.64 once a measurement leak
-  was fixed.
-- **Real text, BEIR SciFact** ([research/flyrag-scifact](research/flyrag-scifact/)): learning on
-  the train queries lifts the separate test queries by +0.022 [+0.016, +0.028] with no harm to
-  unrelated queries, but FlyRAG's base retrieval is far below BM25 (nDCG@10 0.065 vs 0.660).
-- **As a learning re-ranker over BM25** ([research/flyrag-next](research/flyrag-next/)), via
-  `FlyRag::rerank`: SciFact nDCG@10 0.660 → **0.676** (+0.016 [+0.009, +0.023]), random labels give
-  nothing, unrelated queries unchanged. This is the recommended use. An IDF-weighted 16k-bucket front
-  end lifts FlyRAG's own retrieval 0.065 → 0.249, still far below BM25; novelty against stored
-  documents reaches AUC 0.74, below its 0.90 bar.
+Retrieval that learns from verified usefulness, built on kenyon, now lives in its own repository:
+[coleleavitt/flyrag](https://github.com/coleleavitt/flyrag) (code, preregistrations, results).
+Headline: as a learning re-ranker over BM25 it lifts BEIR SciFact nDCG@10 from 0.660 to 0.676.
 
 ## Wiring study, replicated
 

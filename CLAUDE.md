@@ -47,12 +47,12 @@ Outside the library:
 Composition rules:
 - Ablations are first-class types or enum variants, not flags in an `if`.
 - Measured wiring enters only through `SparseProjection::from_edges`.
-- New algorithms (e.g. FlyRAG, below) build on `hash` / `code` / `bloom`; they do not reach into
+- New algorithms (and downstream crates such as FlyRAG) build on `hash` / `code` / `bloom`; they do not reach into
   `projection` internals.
 
 ## Current State
 - Library, reproductions R1–R3, the wiring study and benches are done and committed
-  (`bfcf5b8` … `26066fc`). `publish = false`; nothing pushed; no remote.
+  (`bfcf5b8` … `26066fc`). `publish = false`; remote github.com/coleleavitt/kenyon (private).
 - Reproduction verdicts (README table): R1 ratio reproduced, level partial or fail by mAP formula;
   R2 SIFT not reproduced (ours higher), odours partial; R3 reproduced at 20 classes. Wiring study:
   real PN→KC wiring is **not** better than degree-preserving random; the PN out-degree sequence is
@@ -72,23 +72,9 @@ Composition rules:
   does not); post-hoc Holm/BH correction done; all 12 references verified (Fishilevich & Vosshall 2005
   via Crossref, with its 2007 erratum). Before arXiv: a DoOR consensus matrix covering more
   glomeruli; ask the Navlakha lab for the exact FlyHash mAP formula and the paper's SIFT subset.
-- **FlyRAG built** (`flyrag/`, `research/flyrag/`): bars 1, 2, 4, 5 met. Follow-up (A2/A3): the
-  strict independent-label control gains nothing (the gain is the outcome signal); novelty fails
-  (the first run's score AUC 0.997 was a leak; leak-free 0.64, flag 0.637 after a dev-seed choice).
-  SciFact (`research/flyrag-scifact/`): learning transfers to new queries (+0.022 nDCG@10, no harm
-  on unseen), but base retrieval is 0.065 vs BM25 0.660. Next steps (`research/flyrag-next/`):
-  `rerank` over BM25 0.660 → 0.676, all bars met (the recommended use); IDF + d 16k front end
-  0.249 (bar 0.30 missed); document novelty AUC 0.743 (bar 0.90 missed). Next: persistence; a
-  second real dataset for the re-ranker.
-- **FlyRAG design notes** (design input: `~/RustProjects/active/ckl/docs/replacement/31-fly-ideas.md`
-  idea 4; the same core idea is built and tested as ckl's B2 graph,
-  `~/RustProjects/active/ckl/crates/ckl-neocortex/src/graph/`). Retrieval that *learns from verified
-  usefulness* without forgetting: sparse code + overlap recall, per-document use/skip banks
-  (opposing traces, never overwrite), bounded prediction-error updates, forward-only credit, and a
-  `FlyBloom` novelty flag when a query overlaps nothing. Plan it as its own workspace crate
-  (`flyrag/`) so `kenyon` stays dependency-light. Its first experiment, with the bar predeclared:
-  beat a frozen (no-learning) FlyRAG by ≥ 3 nDCG@10, while a shuffled-outcome control does not.
-  Its pitch is learning from outcomes and novelty, **not** better raw search than HNSW.
+- **FlyRAG moved** to its own repo, `~/RustProjects/active/flyrag` (github.com/coleleavitt/flyrag),
+  with its history. It depends on kenyon by git rev; a kenyon API change that FlyRAG uses needs a
+  rev bump there.
 
 ## Working Rules
 - Toolchain `rustc-master` (`rust-toolchain.toml`); plain `cargo`, never `+stable`.

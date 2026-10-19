@@ -12,6 +12,6 @@
 - **Experiments are not unit tests.** Paper reproductions run in `repro/` with seeds and write to
   `results/`; their bars are predeclared in committed files (`kenyon-experiment` skill). A unit test
   never asserts a published number.
-- Every new feature ships its controls as tests where they are cheap (e.g. FlyRAG: a frozen learner
+- Every new feature ships its controls as tests where they are cheap (e.g. a frozen learner
   changes nothing; shuffled outcomes do not reproduce the learning effect).
 - Never `#[ignore]` a failing test, weaken an assertion, or `#[allow]` a lint to get green.

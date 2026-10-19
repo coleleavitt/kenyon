@@ -1,6 +1,6 @@
 ---
 name: kenyon-experiment
-description: Run a new kenyon experiment (a paper reproduction, an ablation, the wiring study's replication, or a FlyRAG evaluation) the predeclared way — bar and controls committed before the run, seeded, results written to results/, honest verdict. Use whenever a kenyon task produces a number that will be reported.
+description: Run a new kenyon experiment (a paper reproduction, an ablation, the wiring study's replication) the predeclared way — bar and controls committed before the run, seeded, results written to results/, honest verdict. Use whenever a kenyon task produces a number that will be reported.
 ---
 
 # kenyon experiment workflow
