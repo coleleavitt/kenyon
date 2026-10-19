@@ -308,6 +308,136 @@ pub fn flywire_pn_kc(dir: &Path) -> Result<PnKc> {
     Ok(PnKc { pns, kcs, edges })
 }
 
+/// Split one CSV line, honouring double-quoted fields (`"a,b"`) and doubled
+/// quotes inside them. The MCNS export quotes fields that contain commas.
+pub fn split_quoted_csv(line: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut cur = String::new();
+    let mut quoted = false;
+    let mut chars = line.chars().peekable();
+    while let Some(c) = chars.next() {
+        match (c, quoted) {
+            ('"', true) if chars.peek() == Some(&'"') => {
+                cur.push('"');
+                chars.next();
+            }
+            ('"', _) => quoted = !quoted,
+            (',', false) => out.push(std::mem::take(&mut cur)),
+            _ => cur.push(c),
+        }
+    }
+    out.push(cur);
+    out
+}
+
+/// The MCNS uniglomerular rule (PREREG.md amendment A2): a PN type is
+/// uniglomerular iff it does not start with `M_` and the part before the
+/// first `_` has no `+`. Returns that part (the glomerulus).
+pub fn mcns_glomerulus(cell_type: &str) -> Option<&str> {
+    if cell_type.starts_with("M_") {
+        return None;
+    }
+    let g = cell_type.split('_').next()?;
+    (!g.is_empty() && !g.contains('+') && cell_type.contains('_')).then_some(g)
+}
+
+/// Load the male-CNS (MCNS v1.0) ALPN -> Kenyon_Cell subgraph with the
+/// filters of PREREG.md amendment A2: rows with `syn_count >= 5`, summed per
+/// pair. PNs get `sub_class` `uniglomerular` / `multiglomerular` from
+/// [`mcns_glomerulus`], so [`glomerulus`] works unchanged.
+pub fn mcns_pn_kc(dir: &Path) -> Result<PnKc> {
+    let text = gz_lines(&dir.join("neurons.csv.gz"))?;
+    let mut lines = text.lines();
+    let h = split_quoted_csv(lines.next().context("empty neurons.csv")?);
+    let pos = |name: &str| {
+        h.iter()
+            .position(|c| c == name)
+            .with_context(|| format!("no column {name}"))
+    };
+    let (c_id, c_class, c_side, c_type) = (
+        pos("Root ID")?,
+        pos("Class")?,
+        pos("Soma side")?,
+        pos("Primary Cell Type")?,
+    );
+    let mut info: HashMap<String, (String, String, String)> = HashMap::new();
+    let mut types: HashMap<String, String> = HashMap::new();
+    for l in lines {
+        let f = split_quoted_csv(l);
+        if f.len() < h.len() {
+            continue;
+        }
+        let class = f[c_class].as_str();
+        if class == "ALPN" || class == "Kenyon_Cell" {
+            let sub = if class == "ALPN" {
+                if mcns_glomerulus(&f[c_type]).is_some() {
+                    "uniglomerular"
+                } else {
+                    "multiglomerular"
+                }
+            } else {
+                ""
+            };
+            info.insert(
+                f[c_id].clone(),
+                (class.to_string(), sub.to_string(), f[c_side].clone()),
+            );
+            types.insert(f[c_id].clone(), f[c_type].clone());
+        }
+    }
+    let conn = gz_lines(&dir.join("connections_princeton.csv.gz"))?;
+    let mut lines = conn.lines();
+    let h: Vec<&str> = lines
+        .next()
+        .context("empty connections")?
+        .split(',')
+        .collect();
+    let pos = |name: &str| {
+        h.iter()
+            .position(|c| *c == name)
+            .with_context(|| format!("no column {name}"))
+    };
+    let (c_pre, c_post, c_syn) = (pos("pre_root_id")?, pos("post_root_id")?, pos("syn_count")?);
+    let mut pairs: BTreeMap<(String, String), f32> = BTreeMap::new();
+    for l in lines {
+        let f: Vec<&str> = l.split(',').collect();
+        if f.len() < 4 {
+            continue;
+        }
+        let (a, b) = (f[c_pre], f[c_post]);
+        let is = |id: &str, c: &str| info.get(id).is_some_and(|i| i.0 == c);
+        if is(a, "ALPN") && is(b, "Kenyon_Cell") {
+            let s: f32 = f[c_syn]
+                .parse()
+                .with_context(|| format!("syn_count {}", f[c_syn]))?;
+            if s >= 5.0 {
+                *pairs.entry((a.to_string(), b.to_string())).or_insert(0.0) += s;
+            }
+        }
+    }
+    let mut pn_ids: Vec<&String> = pairs.keys().map(|k| &k.0).collect();
+    pn_ids.sort();
+    pn_ids.dedup();
+    let mut kc_ids: Vec<&String> = pairs.keys().map(|k| &k.1).collect();
+    kc_ids.sort();
+    kc_ids.dedup();
+    let cell = |id: &String| {
+        let (_, sub, side) = info[id].clone();
+        Cell {
+            root_id: id.clone(),
+            side,
+            sub_class: sub,
+            cell_type: types.get(id).cloned().unwrap_or_default(),
+        }
+    };
+    let pns: Vec<Cell> = pn_ids.iter().map(|id| cell(id)).collect();
+    let kcs: Vec<Cell> = kc_ids.iter().map(|id| cell(id)).collect();
+    let pi: HashMap<&String, usize> = pn_ids.iter().enumerate().map(|(i, id)| (*id, i)).collect();
+    let ki: HashMap<&String, usize> = kc_ids.iter().enumerate().map(|(i, id)| (*id, i)).collect();
+    let edges = pairs.iter().map(|((a, b), &w)| (pi[a], ki[b], w)).collect();
+    Ok(PnKc { pns, kcs, edges })
+}
+
 /// The glomerulus of a uniglomerular PN type (`DA1_lPN` -> `DA1`).
 pub fn glomerulus(cell: &Cell) -> Option<&str> {
     if cell.sub_class != "uniglomerular" {
@@ -330,4 +460,23 @@ pub fn read_f32(path: &Path) -> Result<Matrix> {
         .map(|c| f32::from_le_bytes(*c))
         .collect();
     Ok(Matrix { n, d, data })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mcns_csv_and_glomerulus_rule() {
+        assert_eq!(
+            split_quoted_csv(r#"1,"a, b",x,"say ""hi""",,"#),
+            ["1", "a, b", "x", r#"say "hi""#, "", ""]
+        );
+        assert_eq!(mcns_glomerulus("DA1_lPN"), Some("DA1"));
+        assert_eq!(mcns_glomerulus("VM5d_adPN"), Some("VM5d"));
+        assert_eq!(mcns_glomerulus("M_vPNml53"), None);
+        assert_eq!(mcns_glomerulus("VP1m+VP2_lvPN2"), None);
+        assert_eq!(mcns_glomerulus(""), None);
+        assert_eq!(mcns_glomerulus("KCg-m"), None);
+    }
 }

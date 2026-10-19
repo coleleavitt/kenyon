@@ -283,8 +283,8 @@ fn pct(v: &mut [usize], q: f64) -> usize {
     v[((v.len() - 1) as f64 * q).round() as usize]
 }
 
-fn study(g: &PnKc, right_only: bool, n_seeds: u64) -> Result<String> {
-    let label = if right_only { "right" } else { "pooled" };
+fn study(g: &PnKc, right_only: bool, n_seeds: u64, tag: &str) -> Result<String> {
+    let label = format!("{tag}{}", if right_only { "right" } else { "pooled" });
     let (pn_idx, _kc_idx, real) = subgraph(g, right_only);
     let (n_pn, n_kc) = (
         pn_idx.len(),
@@ -519,17 +519,28 @@ fn main() -> Result<()> {
         .map(|s| s.parse())
         .transpose()?
         .unwrap_or(20);
-    let fw = std::env::var("KENYON_FLYWIRE")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|_| {
-            std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default())
-                .join("flywire-data/fafb/783")
-        });
-    let g = data::flywire_pn_kc(&fw)?;
-    let mut md = String::from("# Wiring study results\n\n");
-    md += &study(&g, false, n_seeds)?;
+    // KENYON_CONNECTOME=mcns runs the male-CNS replication (PREREG A2).
+    let mcns = std::env::var("KENYON_CONNECTOME").is_ok_and(|v| v == "mcns");
+    let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+    let (g, tag, title) = if mcns {
+        let dir = std::env::var("KENYON_MCNS")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|_| home.join("flywire-data/mcns/1.0"));
+        (
+            data::mcns_pn_kc(&dir)?,
+            "mcns_",
+            "Wiring study results: male CNS v1.0 replication",
+        )
+    } else {
+        let fw = std::env::var("KENYON_FLYWIRE")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|_| home.join("flywire-data/fafb/783"));
+        (data::flywire_pn_kc(&fw)?, "", "Wiring study results")
+    };
+    let mut md = format!("# {title}\n\n");
+    md += &study(&g, false, n_seeds, tag)?;
     md += "\n";
-    md += &study(&g, true, n_seeds)?;
+    md += &study(&g, true, n_seeds, tag)?;
     println!("{md}");
     Ok(())
 }
