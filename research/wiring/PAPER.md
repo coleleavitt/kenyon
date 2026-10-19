@@ -52,7 +52,7 @@ degree sequence gives the fly no measurable hashing advantage in our tests.
   glomeruli, notably food-odour PNs, are over-represented (Zheng et al. 2022 [outside corpus]).
 - **The fair control.** A fair test of "the real wiring is better" must compare against a null
   that keeps the degree sequences.
-  - Dhiman (2026; `topological_sensitivity_connectome_nets_2026` p.9 Tab. 2) showed that a
+  - Dhiman (2026, arXiv:2604.04033, p.9 Table 2) showed that a
     flyvis "connectome advantage" of Δloss 0.184 came from initialisation. Against
     degree-preserving nulls from a shared initialisation it was +0.0017.
   - conn2res (Suárez et al. 2024, p.9) found that the fly mesoscale connectome does not beat its
@@ -275,16 +275,41 @@ null (doc 31 §0).
   - Underlying data: Hallem, E. A. & Carlson, J. R. *Cell* 125, 143–160 (2006).
 - **MNIST:** LeCun et al. 1998.
 
-## References (selected)
+## References
+
+Checked on 2026-10-19 against the full texts, or the reference lists of papers, in the operator's
+corpus (`~/RustProjects/active/axon/docs/research/papers/`). "Not verified" means no corpus source
+was found; check it before submission.
 
 - Caron, S. J. C., Ruta, V., Abbott, L. F. & Axel, R. Random convergence of olfactory inputs in
-  the *Drosophila* mushroom body. *Nature* 497, 113 (2013).
+  the *Drosophila* mushroom body. *Nature* 497, 113–117 (2013). doi:10.1038/nature12063.
+  [verified: full text]
+- Couto, A., Alenius, M. & Dickson, B. J. Molecular, anatomical, and functional organization of
+  the *Drosophila* olfactory system. *Curr. Biol.* 15, 1535–1547 (2005). [verified: cited in a
+  corpus paper's reference list]
 - Dasgupta, S., Stevens, C. F. & Navlakha, S. A neural algorithm for a fundamental computing
-  problem. *Science* 358, 793 (2017).
+  problem. *Science* 358, 793–796 (2017). doi:10.1126/science.aam9868. [verified: reference list
+  of Dasgupta et al. 2018; full text read as the bioRxiv preprint]
 - Dasgupta, S., Sheehan, T. C., Stevens, C. F. & Navlakha, S. A neural data structure for
-  novelty detection. *PNAS* 115, 13093 (2018).
-- Dhiman (2026). Topological sensitivity of connectome-constrained networks (corpus file
-  `topological_sensitivity_connectome_nets_2026`, p.9 Tab. 2).
-- Suárez, L. E. et al. conn2res (2024) (corpus file `conn2res_suarez_2024`, p.9).
-- Zheng, Z. et al. Structured sampling of olfactory input by the fly mushroom body. *Curr.
-  Biol.* (2022) [outside corpus; not re-read here].
+  novelty detection. *PNAS* 115, 13093–13098 (2018). doi:10.1073/pnas.1814448115. [verified: full
+  text]
+- Dhiman, N. Topological sensitivity in connectome-constrained neural networks. arXiv:2604.04033
+  (2026). [verified: full text; the claim cited is p.9, Table 2]
+- Dorkenwald, S. et al. Neuronal wiring diagram of an adult brain. *Nature* 634, 124–138 (2024).
+  doi:10.1038/s41586-024-07558-y. [verified: full text]
+- Fishilevich, E. & Vosshall, L. B. Genetic and functional subdivision of the *Drosophila*
+  antennal lobe. *Curr. Biol.* 15, 1548–1553 (2005). [**not verified** in the corpus]
+- Hallem, E. A. & Carlson, J. R. Coding of odors by a receptor repertoire. *Cell* 125, 143–160
+  (2006). [verified: cited in a corpus paper's reference list]
+- Münch, D. & Galizia, C. G. DoOR 2.0 — comprehensive mapping of *Drosophila melanogaster*
+  odorant responses. *Sci. Rep.* 6, 21841 (2016). [verified: cited in a corpus paper's reference
+  list]
+- Schlegel, P. et al. Whole-brain annotation and multi-connectome cell typing of *Drosophila*.
+  *Nature* (2024). doi:10.1038/s41586-024-07686-5. [verified: full text; page range not
+  re-checked]
+- Suárez, L. E. et al. Connectome-based reservoir computing with the conn2res toolbox. *Nat.
+  Commun.* 15, 656 (2024). doi:10.1038/s41467-024-44900-4. [verified: full text; the claim cited
+  is p.9, the fruit-fly panel against 500 rewired nulls]
+- Zheng, Z. et al. Structured sampling of olfactory input by the fly mushroom body. *Curr. Biol.*
+  32, 3334–3349.e6 (2022). [bibliographic details verified from two corpus reference lists; the
+  paper itself was not re-read, so only its title-level claim is used]
