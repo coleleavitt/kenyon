@@ -101,8 +101,12 @@ forward-only, decaying), and a fly Bloom filter novelty score. Preregistered eva
   was fixed.
 - **Real text, BEIR SciFact** ([research/flyrag-scifact](research/flyrag-scifact/)): learning on
   the train queries lifts the separate test queries by +0.022 [+0.016, +0.028] with no harm to
-  unrelated queries, but FlyRAG's base retrieval is far below BM25 (nDCG@10 0.065 vs 0.660). It is
-  a learning layer to put on top of a real retriever, not a retriever yet.
+  unrelated queries, but FlyRAG's base retrieval is far below BM25 (nDCG@10 0.065 vs 0.660).
+- **As a learning re-ranker over BM25** ([research/flyrag-next](research/flyrag-next/)), via
+  `FlyRag::rerank`: SciFact nDCG@10 0.660 → **0.676** (+0.016 [+0.009, +0.023]), random labels give
+  nothing, unrelated queries unchanged. This is the recommended use. An IDF-weighted 16k-bucket front
+  end lifts FlyRAG's own retrieval 0.065 → 0.249, still far below BM25; novelty against stored
+  documents reaches AUC 0.74, below its 0.90 bar.
 
 ## Wiring study, replicated
 

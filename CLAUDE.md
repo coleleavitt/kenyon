@@ -76,9 +76,10 @@ Composition rules:
   strict independent-label control gains nothing (the gain is the outcome signal); novelty fails
   (the first run's score AUC 0.997 was a leak; leak-free 0.64, flag 0.637 after a dev-seed choice).
   SciFact (`research/flyrag-scifact/`): learning transfers to new queries (+0.022 nDCG@10, no harm
-  on unseen), but base retrieval is 0.065 vs BM25 0.660. Next: an IDF-weighted text front end, or
-  FlyRAG as a re-ranking layer over BM25 (each preregistered); novelty against stored documents;
-  persistence.
+  on unseen), but base retrieval is 0.065 vs BM25 0.660. Next steps (`research/flyrag-next/`):
+  `rerank` over BM25 0.660 → 0.676, all bars met (the recommended use); IDF + d 16k front end
+  0.249 (bar 0.30 missed); document novelty AUC 0.743 (bar 0.90 missed). Next: persistence; a
+  second real dataset for the re-ranker.
 - **FlyRAG design notes** (design input: `~/RustProjects/active/ckl/docs/replacement/31-fly-ideas.md`
   idea 4; the same core idea is built and tested as ckl's B2 graph,
   `~/RustProjects/active/ckl/crates/ckl-neocortex/src/graph/`). Retrieval that *learns from verified

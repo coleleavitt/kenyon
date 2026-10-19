@@ -30,6 +30,7 @@ timeout 1800 $B/flyrag_eval 20 > "$KENYON_OUT/flyrag.md" 2> "$KENYON_OUT/flyrag.
 timeout 1800 $B/flyrag_followup dev > /dev/null
 timeout 1800 $B/flyrag_followup eval 0.10 4 > /dev/null
 timeout 3000 $B/flyrag_scifact 20 > /dev/null 2> "$KENYON_OUT/flyrag_scifact.log"   # needs $KENYON_DATA/scifact
+timeout 3600 $B/flyrag_next 20 > /dev/null 2> "$KENYON_OUT/flyrag_next.log"         # needs $KENYON_DATA/scifact
 timeout 5400 $B/hnsw_vs_fly > "$KENYON_OUT/hnsw_vs_fly.md" 2> "$KENYON_OUT/hnsw_vs_fly.log"
 KENYON_CONNECTOME=mcns timeout 7000 $B/wiring 20 > "$KENYON_OUT/wiring_mcns.md" 2> "$KENYON_OUT/wiring_mcns.log"
 echo "== Memory"
