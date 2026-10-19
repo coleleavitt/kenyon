@@ -59,9 +59,11 @@ Composition rules:
   what matters.
 - crates.io names `kenyon`, `flyhash`, `flybloom`, `flymodel`, `kenyon-cells`, `mushroom-body` were
   all free on 2026-10-02. Publishing is the operator's decision.
-- **Before crates.io:** flip `publish`; verify the `rust-version = "1.85"` claim (never tested on a
-  stable toolchain); add CI; consider a bit-packed static Bloom filter, multi-probe FlyHash, SIMD
-  popcount; add an HNSW comparison to back the "where it loses" text.
+- CI: `.github/workflows/ci.yml` (lint, cross-platform test + golden, MSRV 1.85.0, repro clippy) and
+  the same checks locally in `scripts/ci.sh`. MSRV 1.85 verified (lib + tests on 1.85.0, 2026-10-19;
+  1.85 is also the edition-2024 floor).
+- **Before crates.io:** flip `publish`; consider a bit-packed static Bloom filter, multi-probe
+  FlyHash, SIMD popcount; add an HNSW comparison to back the "where it loses" text.
 - **Before arXiv (wiring paper):** replicate on hemibrain / MCNS (MCNS 1.0 is in
   `~/flywire-data/mcns`); a DoOR consensus matrix covering more glomeruli; multiplicity correction;
   re-check the outside-corpus references; ask the Navlakha lab for the exact FlyHash mAP formula and
@@ -97,6 +99,7 @@ timeout 300  cargo fmt --check
 timeout 1200 cargo clippy --workspace --all-targets -- -D warnings
 timeout 1800 cargo test --workspace
 timeout 1800 cargo test --test golden          # determinism pins
+scripts/ci.sh                                  # everything CI runs, incl. the 1.85.0 MSRV check
 timeout 3600 cargo bench --bench throughput    # optional, ~minutes
 scripts/download_datasets.sh                   # ~85 MB into ~/datasets, sha256-checked
 scripts/reproduce.sh                           # every experiment, seeded (~1.5 h on 24 cores)

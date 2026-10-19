@@ -1,0 +1,65 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+# rust-toolchain.toml pins the operator's local `rustc-master` build, which CI
+# runners don't have; RUSTUP_TOOLCHAIN overrides that file per job.
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      RUSTUP_TOOLCHAIN: nightly
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+      - run: cargo clippy -p kenyon --all-targets -- -D warnings
+      - run: RUSTDOCFLAGS="-D warnings" cargo doc -p kenyon --no-deps
+      # kenyon keeps exactly one runtime dependency.
+      - run: scripts/check_deps.sh
+
+  test:
+    # Determinism is a cross-platform claim: the golden tests run everywhere.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      RUSTUP_TOOLCHAIN: nightly
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: cargo test -p kenyon
+      - run: cargo test -p kenyon --test golden
+
+  msrv:
+    # Cargo.toml declares rust-version = "1.85" (also the edition-2024 floor).
+    runs-on: ubuntu-latest
+    env:
+      RUSTUP_TOOLCHAIN: "1.85.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.0
+      - run: cargo check -p kenyon --lib
+      - run: cargo test -p kenyon
+
+  repro:
+    # The reproduction harness must keep compiling (it is not run in CI:
+    # it needs the datasets and ~1.5 h).
+    runs-on: ubuntu-latest
+    env:
+      RUSTUP_TOOLCHAIN: nightly
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy
+      - run: cargo clippy -p kenyon-repro --all-targets -- -D warnings
