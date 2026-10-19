@@ -33,10 +33,17 @@ and novelty detection with the fly Bloom filter.
 - **The degree sequence matters more than the wiring beyond it.**
   - The skewed PN out-degree costs about 4–5 mAP points on generic inputs (D − U = −0.040 and
     −0.051).
-  - It gains about 2 points on odours (+0.025 and +0.021). This is because the PNs driven by the
-    receptors in the odour panel hold more than their share of claws.
+  - It gains about 2 points on odours in FAFB (+0.025 and +0.021), where the PNs driven by the
+    receptors in the odour panel hold more than their share of claws. This did **not** replicate
+    in the male CNS (+0.002, n.s.), so it is a hypothesis, not a finding.
 - **Novelty.** No contrast was robust. The real-vs-rewired difference on odour novelty changed
   sign between hemispheres.
+
+- **Replication.** In the independently reconstructed male CNS (MCNS v1.0; 270 PNs → 3,766
+  KCs), the primary result replicates by a predeclared rule: real − degree-preserving =
+  −0.020 [−0.026, −0.014] pooled, and −0.001 (n.s.) within one hemisphere.
+- **Multiple comparisons.** The confirmatory test survives Holm correction over all 160 reported
+  contrasts (post hoc, p_Holm = 0.006).
 
 These results agree with recent null results for connectome-constrained models under
 degree-preserving controls (Dhiman 2026; Suárez et al. 2024, conn2res). Topology beyond the
@@ -227,6 +234,35 @@ p-values agree with the stored 95% t-interval calls in 160 of 160 rows.
 
 No conclusion in 3.3 changes direction; two exploratory effects lose significance, and both were
 already read as weak or inconsistent.
+
+### 3.5 Replication on the male CNS (preregistered as amendment A2)
+
+Same code, arms, tasks and seeds on the male CNS v1.0 (MCNS) PN→KC graph, filtered as fixed in
+amendment A2 before the run (rows with ≥ 5 synapses; uniglomerular PNs inferred from type names).
+Raw output: `results/wiring_mcns.md`, `results/wiring_mcns_{pooled,right}.json`.
+
+The two graphs are alike: MCNS has 270 PNs → 3,766 KCs (19,874 pairs; FAFB 285 → 4,723), KC
+fan-in median 5 (p10 3, p90 7), PN out-degree mean 73.6, median 57, maximum 461; odour input
+drives 105 PNs in 23 glomeruli.
+
+| contrast (T1, primary hash) | FAFB | MCNS |
+|---|---|---|
+| P1 pooled (confirmatory) | −0.0155 [−0.0216, −0.0093] | **−0.0203 [−0.0264, −0.0142]** |
+| P1 right hemisphere | −0.0058 [−0.0102, −0.0014] | −0.0011 [−0.0057, +0.0035] |
+| P2 pooled | −0.0404 | −0.0370 |
+| P3 pooled | −0.0146 | −0.0351 |
+
+- **The confirmatory claim replicates** by the predeclared rule (upper bound ≤ +0.005): in a
+  second, independently reconstructed brain the real wiring is again not a better hash than its
+  degree-preserving null. The small *negative* pooled effect replicates too (exploratory), and,
+  as in FAFB, it shrinks to nothing within one hemisphere, consistent with the ipsilateral-claw
+  explanation in 3.3.
+- **The degree effect on generic inputs (P2) replicates** (−0.037 vs −0.040).
+- **Not replicated: the odour benefit of the degree sequence (H3).** FAFB's odour P2 was +0.025
+  [+0.017, +0.032]; MCNS gives +0.002 [−0.008, +0.011]. The "over-represented PNs help odours"
+  reading in 3.3 therefore rests on one brain and is downgraded to a hypothesis.
+- **Odour novelty P1 stays inconsistent:** +0.051 and +0.038 in MCNS's two graphs, against +0.065
+  and −0.045 in FAFB's. No claim is made.
 
 **Conclusion (plain).** In these tests the fly's PN→KC wiring is no better a hash than a random
 graph with the same degree sequence. The degree sequence itself, notably the skewed PN
