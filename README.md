@@ -46,7 +46,10 @@ Fly hashing is a good cheap code. It is not state of the art. Use it for:
 - experiments with measured wiring.
 
 It is **not** a replacement for HNSW, product quantisation or learned hashing (ITQ, BioHash). The
-literature shows FlyHash loses to data-dependent methods (doc 31 survey; BioHash 2020 Table 1).
+literature shows FlyHash loses to data-dependent methods (doc 31 survey; BioHash 2020 Table 1),
+and our own preregistered head-to-head ([research/hnsw/RESULTS.md](research/hnsw/RESULTS.md))
+found HNSW had higher recall *and* lower latency than every FlyIndex configuration on SIFT10K and
+MNIST (e.g. SIFT: HNSW recall@10 1.000 at 139 µs; best FlyIndex 0.938 at 796 µs).
 Our own reproduction shows its advantage over LSH vanishes at k ≥ 16 under the paper's
 valued-tag metric.
 
@@ -85,6 +88,23 @@ The answer is **no**:
 - **The degree sequence.** The skewed PN out-degree is what matters. It costs about 4–5 mAP
   points on generic inputs and gains about 2 on odours.
 - **Novelty.** No robust difference.
+
+## FlyRAG (workspace crate `flyrag`)
+
+Retrieval that learns from verified usefulness: sparse KC codes for candidates, per-document "use"
+and "skip" readout banks depressed by verified outcomes (bounded, prediction-error driven,
+forward-only, decaying), and a fly Bloom filter novelty score. Preregistered evaluation
+([research/flyrag](research/flyrag/)): learning beats a frozen copy by +0.034 nDCG@10
+[+0.028, +0.040] on a synthetic benchmark where lexical similarity misleads, keeps 83% of its gain
+after learning new topics, and its continuous novelty score separates out-of-domain queries (AUC
+0.997); the preregistered yes/no novelty flag missed its bar (AUC 0.507).
+
+## Wiring study, replicated
+
+The wiring result above replicates in the male CNS (MCNS v1.0): real − degree-preserving =
+−0.020 [−0.026, −0.014]. The odour benefit of the degree sequence does not replicate. Details,
+the post-hoc multiplicity correction and the checked references are in
+[research/wiring/PAPER.md](research/wiring/PAPER.md).
 
 ## Regenerate everything
 

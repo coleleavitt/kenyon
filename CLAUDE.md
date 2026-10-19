@@ -65,13 +65,17 @@ Composition rules:
 - Storage compacted (2026-10-19): projection indices at 1/2/4 bytes with no offsets at a fixed
   fan-in; static Bloom cells bit-packed (m/8 bytes). Static FlyBloom at m = 150k: 4.8 MB → 0.92 MB.
   Hashes bit-identical (golden unchanged).
-- **Before crates.io:** flip `publish`; consider multi-probe FlyHash and SIMD popcount; add an HNSW
-  comparison to back the "where it loses" text.
-- **Before arXiv (wiring paper):** replicate on hemibrain / MCNS (MCNS 1.0 is in
-  `~/flywire-data/mcns`); a DoOR consensus matrix covering more glomeruli; multiplicity correction;
-  re-check the outside-corpus references; ask the Navlakha lab for the exact FlyHash mAP formula and
-  the paper's SIFT subset.
-- **Next feature: FlyRAG** (design input: `~/RustProjects/active/ckl/docs/replacement/31-fly-ideas.md`
+- HNSW head-to-head done (`research/hnsw/`): HNSW beats every FlyIndex configuration on recall and
+  latency; predeclared verdict "mixed" (best re-ranked FlyIndex within 0.062 recall).
+- **Before crates.io:** flip `publish`; consider multi-probe FlyHash and SIMD popcount.
+- **Wiring paper:** MCNS replication done (confirmatory claim replicates; odour degree benefit
+  does not); post-hoc Holm/BH correction done; references checked (Fishilevich & Vosshall 2005
+  still unverified). Before arXiv: a DoOR consensus matrix covering more glomeruli; verify that one
+  reference; ask the Navlakha lab for the exact FlyHash mAP formula and the paper's SIFT subset.
+- **FlyRAG built** (`flyrag/`, `research/flyrag/`): bars 1, 2, 4, 5 met; bar 3 (novelty flag) not
+  met. Next: choose the flag threshold on dev seeds 1000–1004 and re-test as an amendment; a
+  stricter shuffled control; a real-data evaluation; persistence.
+- **FlyRAG design notes** (design input: `~/RustProjects/active/ckl/docs/replacement/31-fly-ideas.md`
   idea 4; the same core idea is built and tested as ckl's B2 graph,
   `~/RustProjects/active/ckl/crates/ckl-neocortex/src/graph/`). Retrieval that *learns from verified
   usefulness* without forgetting: sparse code + overlap recall, per-document use/skip banks
