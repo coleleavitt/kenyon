@@ -207,6 +207,27 @@ Percentile-bootstrap intervals differ from the t-intervals by at most 0.007 in e
     hemisphere. An effect that changes sign between two halves of the same brain is not a
     wiring advantage.
 
+### 3.4 Post-hoc multiplicity correction (not preregistered)
+
+The preregistration applied no correction: one confirmatory test (P1, T1, primary hash, pooled)
+and everything else exploratory. For publication we re-analysed every reported row (160 tests:
+5 contrasts × 16 metrics × 2 graphs) with Holm (family-wise error) and Benjamini-Hochberg (FDR),
+both at 0.05, from the stored per-seed effect sizes (paired t, df = 19; no experiment was re-run).
+Script: `research/wiring/multiplicity.py`; output: `results/wiring_multiplicity.md`. The computed
+p-values agree with the stored 95% t-interval calls in 160 of 160 rows.
+
+- 81 rows are detected at raw 0.05; 42 survive Holm; 73 survive BH.
+- **The confirmatory P1 (pooled T1) survives:** p = 4.5 × 10⁻⁵, Holm 0.006.
+- **The single-hemisphere P1 does not survive Holm** (p = 0.012, Holm 1.0; BH q = 0.03). This
+  strengthens the reading in 3.3: within one hemisphere there is no robust wiring effect.
+- **The degree-heterogeneity contrasts (P2) on the primary hash survive** (Holm p down to 10⁻¹²
+  pooled, 2 × 10⁻¹⁰ right), as does odour P2 at k = 5% in both graphs.
+- **The odour-novelty P1 (+0.065 pooled) does not survive Holm** (p = 7 × 10⁻⁴, Holm 0.08), in
+  line with its sign change between hemispheres.
+
+No conclusion in 3.3 changes direction; two exploratory effects lose significance, and both were
+already read as weak or inconsistent.
+
 **Conclusion (plain).** In these tests the fly's PN→KC wiring is no better a hash than a random
 graph with the same degree sequence. The degree sequence itself, notably the skewed PN
 out-degree, is what moves performance. It hurts generic inputs and helps the odours whose PNs
