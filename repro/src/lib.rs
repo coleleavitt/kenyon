@@ -5,6 +5,7 @@
 pub mod data;
 pub mod flyrag_bench;
 pub mod metrics;
+pub mod scifact;
 pub mod stats;
 
 use std::path::PathBuf;
