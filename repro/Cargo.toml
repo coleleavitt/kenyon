@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 kenyon = { path = ".." }
+flyrag = { path = "../flyrag" }
 anyhow = "1"
 rayon = "1"
 flate2 = "1"

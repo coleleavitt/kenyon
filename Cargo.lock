@@ -562,6 +562,7 @@ dependencies = [
  "candle-core",
  "candle-nn",
  "flate2",
+ "flyrag",
  "kenyon",
  "rayon",
 ]
