@@ -7,13 +7,13 @@ step() { echo "== $*"; }
 
 step fmt;      timeout 300  cargo fmt --check
 step clippy;   timeout 1200 cargo clippy --workspace --all-targets -- -D warnings
-step doc;      RUSTDOCFLAGS="-D warnings" timeout 600 cargo doc -p kenyon --no-deps
+step doc;      RUSTDOCFLAGS="-D warnings" timeout 600 cargo doc -p kenyon -p flyrag --no-deps
 step deps;     scripts/check_deps.sh
-step test;     timeout 1800 cargo test -p kenyon
+step test;     timeout 1800 cargo test -p kenyon -p flyrag
 step golden;   timeout 600  cargo test -p kenyon --test golden
 if rustup toolchain list | grep -q '^1\.85\.0'; then
-  step msrv;   timeout 900 cargo +1.85.0 check -p kenyon --lib
-               timeout 1500 cargo +1.85.0 test -p kenyon
+  step msrv;   timeout 900 cargo +1.85.0 check -p kenyon -p flyrag --lib
+               timeout 1500 cargo +1.85.0 test -p kenyon -p flyrag
 else
   echo "== msrv: skipped (rustup toolchain install 1.85.0 to run it)"
 fi
