@@ -125,3 +125,28 @@ Each contrast is a paired difference per seed, with the same task draw for both 
   glomeruli.
 
 A null result on any of these is reported plainly.
+
+## Amendment A2 (2026-10-19, before any MCNS run): replication on the male CNS
+
+Purpose: test whether the confirmatory result replicates in a second, independently reconstructed
+brain. Nothing in the FAFB analysis changes.
+
+- **Data:** male CNS v1.0 (MCNS) Codex export at `~/flywire-data/mcns/1.0/`: `neurons.csv.gz`
+  (quoted CSV; columns `Class`, `Soma side`, `Primary Cell Type`) and
+  `connections_princeton.csv.gz`.
+- **Sets:** PNs = `Class == "ALPN"`, KCs = `Class == "Kenyon_Cell"`, each kept only if it has a
+  PN→KC edge after filtering, as for FAFB.
+- **Synapse filter:** unlike the FAFB export, the MCNS file includes rows with fewer than 5
+  synapses. To match FAFB, keep only rows (pre, post, neuropil) with `syn_count ≥ 5`, then sum
+  per (PN, KC) pair.
+- **Uniglomerular PNs** (used by T2's odour mapping): MCNS has no uni/multiglomerular sub-class.
+  A PN is uniglomerular iff its `Primary Cell Type` does not start with `M_` and the part before
+  the first `_` contains no `+` (e.g. `DA1_lPN` → DA1; `M_vPNml53` and `VP1m+VP2_lvPN2` are
+  excluded). Glomerulus = that part.
+- **Arms, tasks, seeds, statistics:** identical to FAFB (same code, `wiring 20` with
+  `KENYON_CONNECTOME=mcns`). Outputs `results/wiring_mcns_{pooled,right}.json`.
+- **Replication criterion** for the confirmatory contrast (P1, T1, primary hash, pooled), fixed
+  now: the FAFB claim "the real wiring is not a better hash than its degree-preserving null"
+  **replicates** if MCNS's 95% t-CI upper bound is ≤ +0.005; it **fails** if the lower bound is
+  > 0 (real detectably better); otherwise **inconclusive**. Whether MCNS also shows FAFB's
+  small *negative* effect is reported as exploratory.
