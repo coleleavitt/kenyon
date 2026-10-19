@@ -4,17 +4,8 @@
 
 use criterion::{BatchSize, Criterion, Throughput, black_box, criterion_group, criterion_main};
 use kenyon::{
-    BloomParams,
-    DenseFly,
-    FlyBloom,
-    FlyHash,
-    FlyHashParams,
-    FlyIndex,
-    FlyModel,
-    FlyModelParams,
-    Preprocess,
-    Rng,
-    Scratch,
+    BloomParams, DenseFly, FlyBloom, FlyHash, FlyHashParams, FlyIndex, FlyModel, FlyModelParams,
+    Preprocess, Rng, Scratch,
 };
 
 fn data(n: usize, d: usize, seed: u64) -> Vec<Vec<f32>> {
