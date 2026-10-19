@@ -62,8 +62,11 @@ Composition rules:
 - CI: `.github/workflows/ci.yml` (lint, cross-platform test + golden, MSRV 1.85.0, repro clippy) and
   the same checks locally in `scripts/ci.sh`. MSRV 1.85 verified (lib + tests on 1.85.0, 2026-10-19;
   1.85 is also the edition-2024 floor).
-- **Before crates.io:** flip `publish`; consider a bit-packed static Bloom filter, multi-probe
-  FlyHash, SIMD popcount; add an HNSW comparison to back the "where it loses" text.
+- Storage compacted (2026-10-19): projection indices at 1/2/4 bytes with no offsets at a fixed
+  fan-in; static Bloom cells bit-packed (m/8 bytes). Static FlyBloom at m = 150k: 4.8 MB → 0.92 MB.
+  Hashes bit-identical (golden unchanged).
+- **Before crates.io:** flip `publish`; consider multi-probe FlyHash and SIMD popcount; add an HNSW
+  comparison to back the "where it loses" text.
 - **Before arXiv (wiring paper):** replicate on hemibrain / MCNS (MCNS 1.0 is in
   `~/flywire-data/mcns`); a DoOR consensus matrix covering more glomeruli; multiplicity correction;
   re-check the outside-corpus references; ask the Navlakha lab for the exact FlyHash mAP formula and

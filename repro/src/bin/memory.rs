@@ -32,7 +32,7 @@ fn main() -> Result<()> {
     ] {
         let h = FlyHash::new(FlyHashParams::paper(d, k, 1))?;
         println!(
-            "| {name} | {} | projection (u32 indices + offsets) |",
+            "| {name} | {} | projection (compact: 1, 2 or 4-byte indices; no offsets at fixed fan-in) |",
             h.memory_bytes()
         );
     }
@@ -84,7 +84,7 @@ fn main() -> Result<()> {
         let proj = bh.memory_bytes();
         let bf = FlyBloom::new(bh, params)?;
         println!(
-            "| FlyBloom m=150k, {label} | {} | of which projection {proj}; filter cells {} bytes (classical BF: 18,750 bytes) |",
+            "| FlyBloom m=150k, {label} | {} | of which projection {proj}; filter cells {} bytes (bit-packed when delta = epsilon = 0; classical BF: 18,750 bytes) |",
             bf.memory_bytes(),
             bf.memory_bytes() - proj
         );

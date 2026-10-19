@@ -14,7 +14,7 @@
 //! eagerly, so an insert costs O(k) instead of O(m). The cap at 1 is INFERRED
 //! from the paper's normalisation of novelty to [0, 1].
 
-use crate::code::KcCode;
+use crate::code::{BitCode, KcCode};
 use crate::error::{KenyonError, Result, invalid};
 use crate::hash::{FlyHash, Scratch};
 
@@ -36,13 +36,24 @@ impl BloomParams {
     };
 }
 
+/// The filter's `m` cells.
+#[derive(Debug, Clone)]
+enum Cells {
+    /// `delta = epsilon = 0`: every weight is exactly 1 (never stored) or 0
+    /// (stored), so one bit per cell is exact. A set bit means "stored" (weight
+    /// 0). Same storage as a classical Bloom filter: `m / 8` bytes.
+    Bits(BitCode),
+    /// Any decay or recovery: real-valued weights, plus last-touched
+    /// timestamps when `epsilon > 0` (lazy recovery).
+    Weights { w: Vec<f32>, touched: Vec<u64> },
+}
+
 /// A fly Bloom filter over a [`FlyHash`].
 #[derive(Debug, Clone)]
 pub struct FlyBloom {
     hasher: FlyHash,
     params: BloomParams,
-    weights: Vec<f32>,
-    touched: Vec<u64>,
+    cells: Cells,
     clock: u64,
 }
 
@@ -62,18 +73,11 @@ impl FlyBloom {
                 format!("must be in [0, 1], got {}", params.recovery),
             ));
         }
-        let m = hasher.n_kc();
-        // Timestamps are only needed for lazy recovery.
-        let touched = if params.recovery > 0.0 {
-            vec![0; m]
-        } else {
-            Vec::new()
-        };
+        let cells = Self::fresh_cells(hasher.n_kc(), params);
         Ok(Self {
             hasher,
             params,
-            weights: vec![1.0; m],
-            touched,
+            cells,
             clock: 0,
         })
     }
@@ -88,21 +92,62 @@ impl FlyBloom {
         self.clock
     }
 
-    fn weight(&self, u: usize) -> f32 {
-        let w = self.weights[u];
-        if self.params.recovery == 0.0 || w >= 1.0 {
-            return w;
+    fn fresh_cells(m: usize, params: BloomParams) -> Cells {
+        if params.decay == 0.0 && params.recovery == 0.0 {
+            Cells::Bits(BitCode::zeros(m))
+        } else {
+            Cells::Weights {
+                w: vec![1.0; m],
+                // Timestamps are only needed for lazy recovery.
+                touched: if params.recovery > 0.0 {
+                    vec![0; m]
+                } else {
+                    Vec::new()
+                },
+            }
         }
-        let gained = (self.clock - self.touched[u]) as f64 * f64::from(self.params.recovery);
-        (f64::from(w) + gained).min(1.0) as f32
+    }
+
+    /// Filter size `m` (number of cells).
+    pub fn n_cells(&self) -> usize {
+        match &self.cells {
+            Cells::Bits(b) => b.len(),
+            Cells::Weights { w, .. } => w.len(),
+        }
+    }
+
+    /// `true` when the cells are bit-packed (`delta = epsilon = 0`).
+    pub fn is_bit_packed(&self) -> bool {
+        matches!(self.cells, Cells::Bits(_))
+    }
+
+    fn weight(&self, u: usize) -> f32 {
+        match &self.cells {
+            Cells::Bits(b) => {
+                if b.get(u) {
+                    0.0
+                } else {
+                    1.0
+                }
+            }
+            Cells::Weights { w, touched } => {
+                let w = w[u];
+                if self.params.recovery == 0.0 || w >= 1.0 {
+                    return w;
+                }
+                let gained = (self.clock - touched[u]) as f64 * f64::from(self.params.recovery);
+                (f64::from(w) + gained).min(1.0) as f32
+            }
+        }
     }
 
     fn check(&self, code: &KcCode) -> Result<()> {
-        if code.dim() == self.weights.len() {
+        let m = self.n_cells();
+        if code.dim() == m {
             Ok(())
         } else {
             Err(KenyonError::CodeMismatch {
-                left: self.weights.len(),
+                left: m,
                 right: code.dim(),
             })
         }
@@ -125,17 +170,30 @@ impl FlyBloom {
     /// Store an already-hashed item.
     pub fn insert_code(&mut self, code: &KcCode) -> Result<()> {
         self.check(code)?;
-        for &u in code.indices() {
-            let u = u as usize;
-            let w = self.weight(u) * self.params.decay;
-            self.weights[u] = w;
-        }
+        let decayed: Vec<f32> = code
+            .indices()
+            .iter()
+            .map(|&u| self.weight(u as usize) * self.params.decay)
+            .collect();
         self.clock += 1;
-        // Active units were updated "at" this insertion: they do not recover
-        // from it (Eq. 2 adds epsilon only to inactive KCs).
-        if !self.touched.is_empty() {
-            for &u in code.indices() {
-                self.touched[u as usize] = self.clock;
+        match &mut self.cells {
+            // delta = 0: a stored cell's weight is exactly 0.
+            Cells::Bits(b) => {
+                for &u in code.indices() {
+                    b.set(u as usize);
+                }
+            }
+            Cells::Weights { w, touched } => {
+                for (&u, &v) in code.indices().iter().zip(&decayed) {
+                    w[u as usize] = v;
+                }
+                // Active units were updated "at" this insertion: they do not
+                // recover from it (Eq. 2 adds epsilon only to inactive KCs).
+                if !touched.is_empty() {
+                    for &u in code.indices() {
+                        touched[u as usize] = self.clock;
+                    }
+                }
             }
         }
         Ok(())
@@ -163,16 +221,23 @@ impl FlyBloom {
 
     /// Reset every weight to 1.
     pub fn clear(&mut self) {
-        self.weights.iter_mut().for_each(|w| *w = 1.0);
-        self.touched.iter_mut().for_each(|t| *t = 0);
+        self.cells = Self::fresh_cells(self.n_cells(), self.params);
         self.clock = 0;
     }
 
-    /// Heap bytes held (weights + timestamps + hasher). Each cell is an `f32`
-    /// (plus a `u64` timestamp when `recovery > 0`), not the single bit of a
-    /// classical Bloom filter: 32-96x the paper's "m bits" storage.
+    /// Heap bytes held by the cells alone. Bit-packed (`delta = epsilon = 0`):
+    /// `m / 8`, as a classical Bloom filter. Otherwise an `f32` per cell, plus a
+    /// `u64` timestamp when `recovery > 0`.
+    pub fn cell_bytes(&self) -> usize {
+        match &self.cells {
+            Cells::Bits(b) => b.words().len() * 8,
+            Cells::Weights { w, touched } => w.capacity() * 4 + touched.capacity() * 8,
+        }
+    }
+
+    /// Heap bytes held (cells + hasher).
     pub fn memory_bytes(&self) -> usize {
-        self.weights.capacity() * 4 + self.touched.capacity() * 8 + self.hasher.memory_bytes()
+        self.cell_bytes() + self.hasher.memory_bytes()
     }
 }
 
@@ -197,6 +262,57 @@ mod tests {
         f.insert(&x(1)).unwrap();
         assert_eq!(f.novelty(&x(1)).unwrap(), 0.0);
         assert!(f.novelty(&x(2)).unwrap() > 0.5);
+    }
+
+    /// The static filter is bit-packed and scores exactly like Eq. 2 with
+    /// `delta = epsilon = 0` run eagerly on `f32` weights.
+    #[test]
+    fn static_filter_is_bit_packed_and_exact() {
+        let mut f = filter(BloomParams::STATIC);
+        assert!(f.is_bit_packed());
+        let h = f.hasher().clone();
+        let mut eager = vec![1.0f32; h.n_kc()];
+        for s in 0..60 {
+            let c = h.hash(&x(s % 9)).unwrap();
+            let want = c
+                .indices()
+                .iter()
+                .map(|&u| f64::from(eager[u as usize]))
+                .sum::<f64>()
+                / c.len() as f64;
+            assert_eq!(f.novelty_code(&c).unwrap(), want, "step {s}");
+            f.insert_code(&c).unwrap();
+            for &u in c.indices() {
+                eager[u as usize] = 0.0;
+            }
+        }
+        f.clear();
+        assert_eq!(f.novelty(&x(1)).unwrap(), 1.0);
+        assert!(
+            !filter(BloomParams {
+                decay: 0.5,
+                recovery: 0.0
+            })
+            .is_bit_packed()
+        );
+    }
+
+    /// m = 150k (the paper's SIFT setting): the cells take m / 8 bytes, as a
+    /// classical Bloom filter, instead of 600 kB of `f32`.
+    #[test]
+    fn static_cells_cost_one_bit_each() {
+        let h = FlyHash::new(FlyHashParams {
+            n_inputs: 128,
+            n_kc: 150_000,
+            fan_in: 6,
+            k: 16,
+            preprocess: crate::Preprocess::UnitNorm,
+            seed: 3,
+        })
+        .unwrap();
+        let f = FlyBloom::new(h, BloomParams::STATIC).unwrap();
+        assert_eq!(f.cell_bytes(), 150_000_usize.div_ceil(64) * 8);
+        assert!(f.cell_bytes() <= 18_752);
     }
 
     #[test]

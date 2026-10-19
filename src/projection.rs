@@ -12,18 +12,147 @@
 use crate::error::{KenyonError, Result, check_dim, invalid};
 use crate::rng::Rng;
 
+/// Input indices stored at the narrowest width that holds `n_inputs`
+/// (1, 2 or 4 bytes per edge). Chosen deterministically from the shape, so
+/// the same matrix always has the same representation.
+#[derive(Debug, Clone, PartialEq)]
+enum Indices {
+    U8(Vec<u8>),
+    U16(Vec<u16>),
+    U32(Vec<u32>),
+}
+
+/// An index type the matrix can be stored in.
+trait Ix: Copy {
+    fn ix(self) -> usize;
+}
+impl Ix for u8 {
+    fn ix(self) -> usize {
+        usize::from(self)
+    }
+}
+impl Ix for u16 {
+    fn ix(self) -> usize {
+        usize::from(self)
+    }
+}
+impl Ix for u32 {
+    fn ix(self) -> usize {
+        self as usize
+    }
+}
+
+impl Indices {
+    /// Narrow `v` (every entry `< n_inputs`).
+    fn compact(v: Vec<u32>, n_inputs: usize) -> Self {
+        if n_inputs <= 1 << 8 {
+            Self::U8(v.into_iter().map(|i| i as u8).collect())
+        } else if n_inputs <= 1 << 16 {
+            Self::U16(v.into_iter().map(|i| i as u16).collect())
+        } else {
+            Self::U32(v)
+        }
+    }
+
+    fn len(&self) -> usize {
+        match self {
+            Self::U8(v) => v.len(),
+            Self::U16(v) => v.len(),
+            Self::U32(v) => v.len(),
+        }
+    }
+
+    fn get(&self, e: usize) -> usize {
+        match self {
+            Self::U8(v) => v[e].ix(),
+            Self::U16(v) => v[e].ix(),
+            Self::U32(v) => v[e].ix(),
+        }
+    }
+
+    fn bytes(&self) -> usize {
+        match self {
+            Self::U8(v) => v.capacity(),
+            Self::U16(v) => v.capacity() * 2,
+            Self::U32(v) => v.capacity() * 4,
+        }
+    }
+}
+
+/// Row boundaries: a fixed stride when every output has the same fan-in (the
+/// standard FlyHash), else explicit offsets (Bernoulli rows, measured wiring).
+#[derive(Debug, Clone, PartialEq)]
+enum Rows {
+    Stride(usize),
+    Offsets(Vec<u32>),
+}
+
+impl Rows {
+    /// The fixed stride if `offsets` is uniform, else `offsets` itself.
+    fn compact(offsets: Vec<u32>) -> Self {
+        let mut widths = offsets.windows(2).map(|w| w[1] - w[0]);
+        match widths.next() {
+            Some(first) if widths.all(|w| w == first) => Self::Stride(first as usize),
+            None => Self::Stride(0),
+            _ => Self::Offsets(offsets),
+        }
+    }
+
+    fn range(&self, j: usize) -> (usize, usize) {
+        match self {
+            Self::Stride(f) => (j * f, (j + 1) * f),
+            Self::Offsets(o) => (o[j] as usize, o[j + 1] as usize),
+        }
+    }
+
+    fn bytes(&self) -> usize {
+        match self {
+            Self::Stride(_) => 0,
+            Self::Offsets(o) => o.capacity() * 4,
+        }
+    }
+}
+
+fn row_sum<T: Ix>(idx: &[T], x: &[f32]) -> f32 {
+    idx.iter().map(|&i| x[i.ix()]).sum()
+}
+
+fn row_dot<T: Ix>(idx: &[T], w: &[f32], x: &[f32]) -> f32 {
+    idx.iter().zip(w).map(|(&i, &wt)| x[i.ix()] * wt).sum()
+}
+
 /// A sparse `n_outputs x n_inputs` matrix in compressed-row form.
+///
+/// Storage is compact: input indices use 1, 2 or 4 bytes each depending on
+/// `n_inputs`, and a uniform fan-in needs no offsets table. A standard
+/// FlyHash over 128 inputs costs one byte per edge.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SparseProjection {
     n_inputs: usize,
     n_outputs: usize,
-    offsets: Vec<u32>,
-    indices: Vec<u32>,
+    rows: Rows,
+    indices: Indices,
     /// `None` = every edge has weight 1 (the binary fly model).
     weights: Option<Vec<f32>>,
 }
 
 impl SparseProjection {
+    fn build(
+        n_inputs: usize,
+        n_outputs: usize,
+        offsets: Vec<u32>,
+        indices: Vec<u32>,
+        weights: Option<Vec<f32>>,
+    ) -> Self {
+        Self {
+            n_inputs,
+            n_outputs,
+            rows: Rows::compact(offsets),
+            indices: Indices::compact(indices, n_inputs),
+            weights,
+        }
+    }
+
     /// Every output samples exactly `fan_in` distinct inputs, uniformly at
     /// random. With `fan_in = 0.1 * d` this is the FlyHash setting used by
     /// Dasgupta 2017 (preprint p.8, "sampling 10%") and DenseFly (Sharma &
@@ -55,13 +184,7 @@ impl SparseProjection {
             indices.extend_from_slice(&row);
             offsets.push(to_u32(indices.len())?);
         }
-        Ok(Self {
-            n_inputs,
-            n_outputs,
-            offsets,
-            indices,
-            weights: None,
-        })
+        Ok(Self::build(n_inputs, n_outputs, offsets, indices, None))
     }
 
     /// Each entry is 1 independently with probability `p` (the model stated in
@@ -84,13 +207,7 @@ impl SparseProjection {
             }
             offsets.push(to_u32(indices.len())?);
         }
-        Ok(Self {
-            n_inputs,
-            n_outputs,
-            offsets,
-            indices,
-            weights: None,
-        })
+        Ok(Self::build(n_inputs, n_outputs, offsets, indices, None))
     }
 
     /// Build from explicit `(input, output, weight)` edges, e.g. a connectome's
@@ -142,13 +259,13 @@ impl SparseProjection {
             offsets.push(to_u32(indices.len())?);
         }
         let binary = weights.iter().all(|&w| w == 1.0);
-        Ok(Self {
+        Ok(Self::build(
             n_inputs,
             n_outputs,
             offsets,
             indices,
-            weights: if binary { None } else { Some(weights) },
-        })
+            if binary { None } else { Some(weights) },
+        ))
     }
 
     /// Number of inputs (PNs, `d`).
@@ -171,20 +288,25 @@ impl SparseProjection {
         self.weights.is_none()
     }
 
-    /// The inputs of output `j`, sorted ascending.
-    pub fn row(&self, j: usize) -> &[u32] {
-        match (self.offsets.get(j), self.offsets.get(j + 1)) {
-            (Some(&a), Some(&b)) => &self.indices[a as usize..b as usize],
-            _ => &[],
+    fn range(&self, j: usize) -> Option<(usize, usize)> {
+        (j < self.n_outputs).then(|| self.rows.range(j))
+    }
+
+    /// The inputs of output `j`, sorted ascending (empty if `j` is out of
+    /// range).
+    pub fn row(&self, j: usize) -> Vec<u32> {
+        match self.range(j) {
+            Some((a, b)) => (a..b).map(|e| self.indices.get(e) as u32).collect(),
+            None => Vec::new(),
         }
     }
 
     /// The edge weights of output `j` (all 1 for a binary matrix).
     pub fn row_weights(&self, j: usize) -> Vec<f32> {
-        match (&self.weights, self.offsets.get(j), self.offsets.get(j + 1)) {
-            (Some(w), Some(&a), Some(&b)) => w[a as usize..b as usize].to_vec(),
-            (None, _, _) => vec![1.0; self.row(j).len()],
-            _ => Vec::new(),
+        match (self.range(j), &self.weights) {
+            (Some((a, b)), Some(w)) => w[a..b].to_vec(),
+            (Some((a, b)), None) => vec![1.0; b - a],
+            (None, _) => Vec::new(),
         }
     }
 
@@ -192,10 +314,10 @@ impl SparseProjection {
     pub fn edges(&self) -> Vec<(usize, usize, f32)> {
         let mut out = Vec::with_capacity(self.indices.len());
         for j in 0..self.n_outputs {
-            let (a, b) = (self.offsets[j] as usize, self.offsets[j + 1] as usize);
+            let (a, b) = self.rows.range(j);
             for e in a..b {
                 let w = self.weights.as_ref().map_or(1.0, |w| w[e]);
-                out.push((self.indices[e] as usize, j, w));
+                out.push((self.indices.get(e), j, w));
             }
         }
         out
@@ -203,17 +325,19 @@ impl SparseProjection {
 
     /// In-degree (fan-in) of every output.
     pub fn fan_in(&self) -> Vec<usize> {
-        self.offsets
-            .windows(2)
-            .map(|w| (w[1] - w[0]) as usize)
+        (0..self.n_outputs)
+            .map(|j| {
+                let (a, b) = self.rows.range(j);
+                b - a
+            })
             .collect()
     }
 
     /// Out-degree of every input (how many outputs sample it).
     pub fn out_degree(&self) -> Vec<usize> {
         let mut deg = vec![0usize; self.n_inputs];
-        for &i in &self.indices {
-            deg[i as usize] += 1;
+        for e in 0..self.indices.len() {
+            deg[self.indices.get(e)] += 1;
         }
         deg
     }
@@ -230,31 +354,24 @@ impl SparseProjection {
     pub fn project_into(&self, x: &[f32], out: &mut [f32]) -> Result<()> {
         check_dim(self.n_inputs, x.len())?;
         check_dim(self.n_outputs, out.len())?;
-        match &self.weights {
-            None => {
-                for (j, o) in out.iter_mut().enumerate() {
-                    let (a, b) = (self.offsets[j] as usize, self.offsets[j + 1] as usize);
-                    *o = self.indices[a..b].iter().map(|&i| x[i as usize]).sum();
-                }
-            }
-            Some(w) => {
-                for (j, o) in out.iter_mut().enumerate() {
-                    let (a, b) = (self.offsets[j] as usize, self.offsets[j + 1] as usize);
-                    *o = self.indices[a..b]
-                        .iter()
-                        .zip(&w[a..b])
-                        .map(|(&i, &wt)| x[i as usize] * wt)
-                        .sum();
-                }
-            }
+        for (j, o) in out.iter_mut().enumerate() {
+            let (a, b) = self.rows.range(j);
+            *o = match (&self.indices, &self.weights) {
+                (Indices::U8(v), None) => row_sum(&v[a..b], x),
+                (Indices::U16(v), None) => row_sum(&v[a..b], x),
+                (Indices::U32(v), None) => row_sum(&v[a..b], x),
+                (Indices::U8(v), Some(w)) => row_dot(&v[a..b], &w[a..b], x),
+                (Indices::U16(v), Some(w)) => row_dot(&v[a..b], &w[a..b], x),
+                (Indices::U32(v), Some(w)) => row_dot(&v[a..b], &w[a..b], x),
+            };
         }
         Ok(())
     }
 
     /// Heap bytes held by the matrix.
     pub fn memory_bytes(&self) -> usize {
-        self.offsets.capacity() * 4
-            + self.indices.capacity() * 4
+        self.rows.bytes()
+            + self.indices.bytes()
             + self.weights.as_ref().map_or(0, |w| w.capacity() * 4)
     }
 }
@@ -385,6 +502,54 @@ fn to_u32(v: usize) -> Result<u32> {
 mod tests {
     use super::*;
 
+    /// Compact storage: index width follows `n_inputs`, a uniform fan-in
+    /// needs no offsets, and the compact matrix projects exactly like the
+    /// same edges built explicitly (variable rows, u32 path).
+    #[test]
+    fn storage_is_compact_and_projects_identically() {
+        let sift = SparseProjection::fixed_fan_in(128, 150_000, 6, 1).unwrap();
+        assert!(matches!(sift.indices, Indices::U8(_)));
+        assert!(matches!(sift.rows, Rows::Stride(6)));
+        assert_eq!(
+            sift.memory_bytes(),
+            150_000 * 6,
+            "one byte per edge, no offsets"
+        );
+        let mnist = SparseProjection::fixed_fan_in(784, 7840, 78, 1).unwrap();
+        assert!(matches!(mnist.indices, Indices::U16(_)));
+        let wide = SparseProjection::fixed_fan_in(70_000, 10, 3, 1).unwrap();
+        assert!(matches!(wide.indices, Indices::U32(_)));
+        assert!(matches!(
+            SparseProjection::bernoulli(32, 50, 0.2, 3).unwrap().rows,
+            Rows::Offsets(_)
+        ));
+        for p in [&sift, &mnist] {
+            // Same edges plus one extra edge on output 0: variable rows force
+            // the offsets path; every other output must project identically.
+            let mut edges = p.edges();
+            let extra = (0..p.n_inputs())
+                .find(|i| !p.row(0).contains(&(*i as u32)))
+                .unwrap();
+            edges.push((extra, 0, 1.0));
+            let q = SparseProjection::from_edges(p.n_inputs(), p.n_outputs(), &edges).unwrap();
+            assert!(matches!(q.rows, Rows::Offsets(_)));
+            let mut r = Rng::new(9);
+            let x: Vec<f32> = (0..p.n_inputs()).map(|_| r.next_f64() as f32).collect();
+            let (mut a, mut b) = (vec![0.0; p.n_outputs()], vec![0.0; p.n_outputs()]);
+            p.project_into(&x, &mut a).unwrap();
+            q.project_into(&x, &mut b).unwrap();
+            assert_eq!(a[1..], b[1..]);
+            // Output 0 gained one edge mid-row, so its sum runs in another
+            // order: equal up to float rounding.
+            assert!(
+                (b[0] - (a[0] + x[extra])).abs() < 1e-5,
+                "{} vs {}",
+                b[0],
+                a[0] + x[extra]
+            );
+        }
+    }
+
     #[test]
     fn fixed_fan_in_has_exact_fan_in_and_is_seeded() {
         let p = SparseProjection::fixed_fan_in(50, 2000, 6, 42).unwrap();
@@ -408,7 +573,7 @@ mod tests {
     fn from_edges_merges_duplicates_and_keeps_weights() {
         let p =
             SparseProjection::from_edges(3, 1, &[(1, 0, 2.0), (1, 0, 3.0), (0, 0, 1.0)]).unwrap();
-        assert_eq!(p.row(0), &[0, 1]);
+        assert_eq!(p.row(0), vec![0, 1]);
         assert_eq!(p.row_weights(0), vec![1.0, 5.0]);
         let mut out = [0.0];
         p.project_into(&[1.0, 1.0, 1.0], &mut out).unwrap();

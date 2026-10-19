@@ -306,21 +306,27 @@ Reading:
 | FlyModel train_one (84 → 3,200 → 20) | 14.5 µs | 69 k/s |
 | FlyModel predict | 16.3 µs | 61 k/s |
 
-Memory (`results/memory.md`, from `memory_bytes()`):
+Memory (`results/memory.md`, from `memory_bytes()`). Storage was compacted on 2026-10-19 (projection
+indices stored at 1, 2 or 4 bytes with no offsets table at a fixed fan-in; static Bloom cells
+bit-packed). Hashes are bit-identical (`tests/golden.rs` unchanged); the earlier figures are kept
+for comparison:
 
-| structure | bytes |
+| structure | bytes (before → now) |
 |---|---|
-| FlyHash projection, MNIST (7,840 KCs × 78 claws) | 2.48 MB |
-| FlyHash projection, SIFT (1,280 × 12) | 66.6 KB |
+| FlyHash projection, MNIST (7,840 KCs × 78 claws) | 2.48 MB → 1.22 MB (u16 indices) |
+| FlyHash projection, SIFT (1,280 × 12) | 66.6 KB → 15.4 KB (u8 indices) |
 | FlyIndex, 10k items, k = 16 | 2.61 MB (261 B/item incl. postings) |
-| FlyBloom m = 150k, static | 4.8 MB (projection 4.2 MB + f32 cells 0.6 MB) |
-| FlyBloom m = 150k, with recovery | 6.0 MB (adds u64 timestamps) |
-| FlyModel MNIST-20 | 397 KB |
+| FlyBloom m = 150k, static | 4.8 MB → **0.92 MB** (projection 0.9 MB + bit-packed cells 18.75 KB) |
+| FlyBloom m = 150k, with recovery | 6.0 MB → 2.7 MB (f32 cells + u64 timestamps; projection 0.9 MB) |
+| FlyModel MNIST-20 | 397 KB → 288 KB |
+
+The throughput table above was measured before the compaction.
 
 Reading:
 - **Cost per hash.** The paper's "20× cheaper" (preprint p.8) is per projection. With a 10d
   expansion and 10% fan-in, a FlyHash *hash* does 611k additions, against 3,136
   multiply-adds for 4 LSH projections. It is about 130× slower here.
-- **Storage.** The fly Bloom filter stores f32 cells, not bits. A classical m = 150k filter is
-  18.75 KB. The projection matrix dominates memory.
+- **Storage.** With decay or recovery the fly Bloom filter needs real-valued cells (f32 + u64
+  timestamps). In the paper's static setting the cells are exact bits, as a classical filter
+  (18.75 KB at m = 150k); the projection matrix then dominates memory.
 - **Open optimisation (not done):** a bit-packed static filter and u16 claw indices.
