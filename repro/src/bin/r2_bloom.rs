@@ -3,17 +3,8 @@
 
 use anyhow::Result;
 use kenyon::{
-    BloomParams,
-    DenseProjection,
-    Expansion,
-    FlyBloom,
-    FlyHash,
-    KcCode,
-    Preprocess,
-    Rng,
-    Scratch,
-    SparseProjection,
-    TagRule,
+    BloomParams, DenseProjection, Expansion, FlyBloom, FlyHash, KcCode, Preprocess, Rng, Scratch,
+    SparseProjection, TagRule,
 };
 use kenyon_repro::metrics::{pearson, sq_dist};
 use kenyon_repro::stats::{mean, sd};

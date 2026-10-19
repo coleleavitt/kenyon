@@ -11,16 +11,8 @@ use std::io::Write;
 use anyhow::{Context, Result};
 use candle_core::{D, DType, Device, Tensor};
 use candle_nn::{
-    BatchNorm,
-    BatchNormConfig,
-    Conv2d,
-    Conv2dConfig,
-    Linear,
-    ModuleT,
-    Optimizer,
-    ParamsAdamW,
-    VarBuilder,
-    VarMap,
+    BatchNorm, BatchNormConfig, Conv2d, Conv2dConfig, Linear, ModuleT, Optimizer, ParamsAdamW,
+    VarBuilder, VarMap,
 };
 use kenyon::Rng;
 use kenyon_repro::{Matrix, data, data_dir};

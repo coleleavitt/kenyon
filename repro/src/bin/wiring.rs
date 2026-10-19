@@ -6,17 +6,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use anyhow::{Result, ensure};
 use kenyon::{
-    BitCode,
-    BloomParams,
-    FlyBloom,
-    FlyHash,
-    KcCode,
-    Preprocess,
-    Rng,
-    Scratch,
-    SparseProjection,
-    TagRule,
-    wta,
+    BitCode, BloomParams, FlyBloom, FlyHash, KcCode, Preprocess, Rng, Scratch, SparseProjection,
+    TagRule, wta,
 };
 use kenyon_repro::data::{self, HALLEM_RECEPTORS, PnKc, glomerulus};
 use kenyon_repro::metrics::{average_precision, pearson, sq_dist, top_r_by};

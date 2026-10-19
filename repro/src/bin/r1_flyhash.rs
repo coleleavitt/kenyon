@@ -3,16 +3,8 @@
 
 use anyhow::Result;
 use kenyon::{
-    DenseProjection,
-    Expansion,
-    FlyHash,
-    KcCode,
-    Preprocess,
-    Rng,
-    Scratch,
-    SparseProjection,
-    TagRule,
-    wta,
+    DenseProjection, Expansion, FlyHash, KcCode, Preprocess, Rng, Scratch, SparseProjection,
+    TagRule, wta,
 };
 use kenyon_repro::metrics::{average_precision, sq_dist, top_r_by};
 use kenyon_repro::stats::{mean, sd};

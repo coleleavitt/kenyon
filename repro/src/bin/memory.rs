@@ -3,17 +3,8 @@
 
 use anyhow::Result;
 use kenyon::{
-    BloomParams,
-    DenseFly,
-    DenseFlyIndex,
-    FlyBloom,
-    FlyHash,
-    FlyHashParams,
-    FlyIndex,
-    FlyModel,
-    FlyModelParams,
-    Preprocess,
-    Rng,
+    BloomParams, DenseFly, DenseFlyIndex, FlyBloom, FlyHash, FlyHashParams, FlyIndex, FlyModel,
+    FlyModelParams, Preprocess, Rng,
 };
 
 fn data(n: usize, d: usize, seed: u64) -> Vec<Vec<f32>> {

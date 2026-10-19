@@ -1,14 +1,7 @@
 //! Cross-version stability and behavioural properties.
 
 use kenyon::{
-    BloomParams,
-    FlyBloom,
-    FlyHash,
-    FlyHashParams,
-    FlyModel,
-    FlyModelParams,
-    Preprocess,
-    Rng,
+    BloomParams, FlyBloom, FlyHash, FlyHashParams, FlyModel, FlyModelParams, Preprocess, Rng,
     SparseProjection,
 };
 
