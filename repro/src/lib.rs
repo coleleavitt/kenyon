@@ -3,6 +3,7 @@
 //! Not published; see `RESULTS.md` and `research/wiring/`.
 
 pub mod data;
+pub mod flyrag_bench;
 pub mod metrics;
 pub mod stats;
 

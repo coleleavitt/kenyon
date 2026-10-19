@@ -590,6 +590,7 @@ dependencies = [
  "instant-distance",
  "kenyon",
  "rayon",
+ "serde_json",
 ]
 
 [[package]]
