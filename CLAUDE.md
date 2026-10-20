@@ -52,7 +52,7 @@ Composition rules:
 
 ## Current State
 - Library, reproductions R1–R3, the wiring study and benches are done and committed
-  (`bfcf5b8` … `26066fc`). `publish = false`; remote github.com/coleleavitt/kenyon (private).
+  (`bfcf5b8` … `26066fc`). `publish = false`; remote github.com/coleleavitt/kenyon (public).
 - Reproduction verdicts (README table): R1 ratio reproduced, level partial or fail by mAP formula;
   R2 SIFT not reproduced (ours higher), odours partial; R3 reproduced at 20 classes. Wiring study:
   real PN→KC wiring is **not** better than degree-preserving random; the PN out-degree sequence is

@@ -12,6 +12,5 @@
 - No destructive commands outside the repo. `scripts/reproduce.sh` writes only into `results/` and
   `target/`.
 - `publish = false` stays until the operator decides; never run `cargo publish`. Push only to
-  `origin` (github.com/coleleavitt/kenyon, private) when the operator asks.
-- The deploy key "flyrag CI (read-only)" on this repo lets FlyRAG's CI fetch kenyon; don't remove
-  it while FlyRAG depends on kenyon by git.
+  `origin` (github.com/coleleavitt/kenyon, public since 2026-10-19) when the operator asks.
+- The repo is public: everything committed is world-readable. FlyRAG fetches kenyon over https.
