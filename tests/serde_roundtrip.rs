@@ -55,6 +55,53 @@ fn flybloom_roundtrips_in_both_cell_modes() {
 }
 
 #[test]
+fn flyindex_compact_frees_tombstoned_slots_and_remaps_live_ids() {
+    let h = FlyHash::new(FlyHashParams::paper(32, 8, 3)).unwrap();
+    let mut idx = FlyIndex::new(h.n_kc());
+    let xs = sample(5, 8, 32);
+    let mut old_ids = Vec::new();
+    for x in &xs {
+        old_ids.push(idx.insert(h.hash(x).unwrap()).unwrap());
+    }
+    // Retire every other slot.
+    for (i, &id) in old_ids.iter().enumerate() {
+        if i % 2 == 0 {
+            assert!(idx.remove(id).unwrap());
+        }
+    }
+    let live_before = idx.live_len();
+    let bytes_before = idx.memory_bytes();
+
+    let (mapping, dropped) = idx.compact();
+    assert_eq!(dropped, old_ids.len() / 2, "drops the tombstoned half");
+    assert_eq!(idx.len(), live_before);
+    assert_eq!(idx.live_len(), live_before);
+    assert!(idx.memory_bytes() < bytes_before, "memory reclaimed");
+
+    // Every live old id maps; every tombstoned old id does not.
+    for (i, &old_id) in old_ids.iter().enumerate() {
+        let mapped = mapping.get(&old_id);
+        if i % 2 == 0 {
+            assert!(mapped.is_none(), "tombstoned id {old_id} is not in mapping");
+        } else {
+            let new_id = *mapped.expect("live id remapped");
+            // A query for the original code lands on the remapped id.
+            let q = h.hash(&xs[i]).unwrap();
+            let top = idx.query_overlap(&q, 4).unwrap();
+            assert!(top.iter().any(|hit| hit.id == new_id), "{top:?}");
+        }
+    }
+
+    // Second compact is a no-op with a complete identity mapping.
+    let (ident, dropped) = idx.compact();
+    assert_eq!(dropped, 0);
+    assert_eq!(ident.len(), live_before);
+    for (old, new) in &ident {
+        assert_eq!(old, new);
+    }
+}
+
+#[test]
 fn flyindex_roundtrips_with_tombstones() {
     let h = FlyHash::new(FlyHashParams::paper(32, 8, 3)).unwrap();
     let mut idx = FlyIndex::new(h.n_kc());

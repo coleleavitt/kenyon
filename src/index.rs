@@ -193,6 +193,55 @@ impl FlyIndex {
                 .sum::<usize>()
             + self.tombstoned.capacity()
     }
+
+    /// Rebuild the index with only live slots, reclaiming the memory
+    /// held by tombstoned codes and the dead entries in every posting
+    /// list. Returns `old_id -> new_id` for every live id so a caller
+    /// (flyrag, downstream readouts, offer bookkeeping) can remap its
+    /// parallel vectors. Tombstoned ids do NOT appear in the returned
+    /// map — a lookup for one is `None`.
+    ///
+    /// Determinism: new ids are assigned in ascending old-id order, so
+    /// the mapping is stable across runs with identical inputs.
+    ///
+    /// # Returns
+    ///
+    /// `(mapping, dropped)` where `mapping` holds every live-id move
+    /// and `dropped` is the number of tombstoned slots this call freed.
+    /// `dropped == 0` means the index was already compact — no work
+    /// was needed; the mapping is still complete (every id maps to
+    /// itself) so a caller doesn't branch.
+    pub fn compact(&mut self) -> (std::collections::HashMap<u32, u32>, usize) {
+        let dropped = self.tombstoned.iter().filter(|&&t| t).count();
+        if dropped == 0 {
+            let mapping = (0..self.codes.len())
+                .map(|i| {
+                    let id = i as u32;
+                    (id, id)
+                })
+                .collect();
+            return (mapping, 0);
+        }
+        let mut mapping = std::collections::HashMap::with_capacity(self.codes.len() - dropped);
+        let mut new_codes: Vec<KcCode> = Vec::with_capacity(self.codes.len() - dropped);
+        let mut new_postings: Vec<Vec<u32>> = vec![Vec::new(); self.dim];
+        for (old_idx, code) in self.codes.iter().enumerate() {
+            let old_id = old_idx as u32;
+            if self.is_tombstoned(old_id) {
+                continue;
+            }
+            let new_id = new_codes.len() as u32;
+            mapping.insert(old_id, new_id);
+            for &u in code.indices() {
+                new_postings[u as usize].push(new_id);
+            }
+            new_codes.push(code.clone());
+        }
+        self.codes = new_codes;
+        self.postings = new_postings;
+        self.tombstoned.clear();
+        (mapping, dropped)
+    }
 }
 
 /// DenseFly multi-probe index (one table).
