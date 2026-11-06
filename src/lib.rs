@@ -49,6 +49,7 @@ mod model;
 mod preprocess;
 mod projection;
 mod rng;
+mod text;
 pub mod wta;
 
 pub use bloom::{BloomParams, FlyBloom};
@@ -60,3 +61,4 @@ pub use model::{Coding, FlyModel, FlyModelParams, LearningRule};
 pub use preprocess::Preprocess;
 pub use projection::{DenseProjection, Expansion, SparseProjection};
 pub use rng::Rng;
+pub use text::HashedText;

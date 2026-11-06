@@ -32,9 +32,13 @@ let score = novelty.novelty(&query)?; // 1 = nothing like it seen, 0 = familiar
   every version. `tests/golden.rs` pins this.
 - **Bit-level stability guarantee.** The hashes a given seed produces are a stable surface: the
   `Rng` constants (`splitmix64`'s multipliers, the `xoshiro256**` shifts and rotates, the stream
-  tags `PROJ`/`BERN`/`GAUS`/`TAG!`) and the `top_k` tie-break are frozen. A change to any of them
-  is a breaking change and bumps the major version. Downstream code that persists a `FlyHash` or
-  a `FlyIndex` can pin kenyon by exact rev and read its stored codes on any later patch release.
+  tags `PROJ`/`BERN`/`GAUS`/`TAG!`) and the `top_k` tie-break are frozen. [`HashedText`] is in
+  the same surface — its FNV-1a constants (`0xcbf2_9ce4_8422_2325`, multiplier `0x0100_0000_01b3`),
+  the `0x1f` part separator, and the `1 + ln(tf)` weighting are frozen; `DenseFlyIndex` orders its
+  bins in a `BTreeMap` for cross-platform-stable tie-breaking. A change to any of them is a
+  breaking change and bumps the major version. Downstream code that persists a `FlyHash`, a
+  `FlyIndex`, or an encoded text feature vector can pin kenyon by exact rev and read its stored
+  state on any later patch release.
 - **Optional serde.** With `features = ["serde"]`, `FlyHash`, `FlyBloom`, `FlyIndex`, `FlyModel`,
   their params and the `KcCode`/`BitCode` codes all round-trip through serde — downstream
   persistence is a format decision (bincode, postcard, json), not a representation one.

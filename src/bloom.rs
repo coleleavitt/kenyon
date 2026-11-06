@@ -222,10 +222,105 @@ impl FlyBloom {
         Ok(n)
     }
 
+    /// Novelty of a text input: encode with `encoder`, then score. The
+    /// encoder's dimension MUST match the hasher's input dimension;
+    /// mismatch surfaces as [`KenyonError::DimensionMismatch`] from the
+    /// hash path.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KenyonError::DimensionMismatch`] when
+    /// `encoder.dim() != self.hasher().n_inputs()`.
+    pub fn novelty_text(&self, encoder: &crate::text::HashedText, text: &str) -> Result<f64> {
+        self.novelty(&encoder.encode(text))
+    }
+
+    /// Store a text input (no scoring).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KenyonError::DimensionMismatch`] when
+    /// `encoder.dim() != self.hasher().n_inputs()`.
+    pub fn insert_text(&mut self, encoder: &crate::text::HashedText, text: &str) -> Result<()> {
+        self.insert(&encoder.encode(text))
+    }
+
+    /// Score then store a text input — the admission-time use:
+    /// "how new is this memory?". The returned score is in [0, 1]: 1 =
+    /// nothing like it stored yet, 0 = fully familiar.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KenyonError::DimensionMismatch`] when
+    /// `encoder.dim() != self.hasher().n_inputs()`.
+    pub fn observe_text(
+        &mut self,
+        encoder: &crate::text::HashedText,
+        text: &str,
+        s: &mut Scratch,
+    ) -> Result<f64> {
+        self.observe(&encoder.encode(text), s)
+    }
+
     /// Reset every weight to 1.
     pub fn clear(&mut self) {
         self.cells = Self::fresh_cells(self.n_cells(), self.params);
         self.clock = 0;
+    }
+
+    /// Pick an adaptive novelty threshold from an observed novelty
+    /// distribution: the `q`-quantile of `samples` (linear
+    /// interpolation between the two neighbouring ranks). Anything
+    /// scoring at or above the returned value is "novel"; anything
+    /// below is "familiar."
+    ///
+    /// The paper's SI (Dasgupta et al., PNAS 2018) mentions
+    /// distribution-based thresholding; it is left to the caller
+    /// because the right quantile depends on the downstream cost
+    /// trade-off (precision vs recall). A typical setting is
+    /// `q = 0.9`: keep the top 10% of novelty scores as novel.
+    ///
+    /// `samples` MAY be empty (returns 0.0) or hold a single point
+    /// (returns that point). Non-finite values are ignored.
+    #[must_use]
+    pub fn quantile_threshold(samples: &[f64], q: f64) -> f64 {
+        let mut xs: Vec<f64> = samples.iter().copied().filter(|v| v.is_finite()).collect();
+        if xs.is_empty() {
+            return 0.0;
+        }
+        xs.sort_by(f64::total_cmp);
+        let q = q.clamp(0.0, 1.0);
+        let n = xs.len();
+        if n == 1 {
+            return xs[0];
+        }
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "quantile position is interpolated in f64; precision suffices well past any plausible novelty sample count"
+        )]
+        let pos = q * (n - 1) as f64;
+        #[expect(
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "pos is clamped in [0, n-1]; floor fits usize"
+        )]
+        let lo = pos.floor() as usize;
+        let hi = (lo + 1).min(n - 1);
+        let frac = pos - pos.floor();
+        xs[lo] * (1.0 - frac) + xs[hi] * frac
+    }
+
+    /// Classify `x` as novel (`Ok(true)`) when its score is at or above
+    /// `threshold`, else familiar (`Ok(false)`). Pair with
+    /// [`FlyBloom::quantile_threshold`] over a window of recent
+    /// novelty readings to get an adaptive gate.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KenyonError::DimensionMismatch`] when `x.len()` does
+    /// not match the hasher's input dimension.
+    pub fn decide(&self, x: &[f32], threshold: f64) -> Result<bool> {
+        Ok(self.novelty(x)? >= threshold)
     }
 
     /// Heap bytes held by the cells alone. Bit-packed (`delta = epsilon = 0`):
@@ -342,6 +437,47 @@ mod tests {
         for (u, &e) in eager.iter().enumerate() {
             assert!((f64::from(f.weight(u)) - e).abs() < 1e-4, "unit {u}");
         }
+    }
+
+    #[test]
+    fn quantile_threshold_and_decide_adapt_a_gate() {
+        let mut f = filter(BloomParams::STATIC);
+        // Observe 30 items; keep the running novelty score for each.
+        let mut novelties: Vec<f64> = Vec::new();
+        let mut s = Scratch::default();
+        for seed in 0..30 {
+            let n = f.observe(&x(seed), &mut s).unwrap();
+            novelties.push(n);
+        }
+        // Keep the top 20% as "novel": the 0.8-quantile of the series.
+        let threshold = FlyBloom::quantile_threshold(&novelties, 0.8);
+        assert!((0.0..=1.0).contains(&threshold), "threshold {threshold}");
+
+        // An already-observed item (seed 2, re-queried) should fall
+        // below the gate: it is familiar now.
+        let familiar = f.decide(&x(2), threshold).unwrap();
+        assert!(
+            !familiar,
+            "an already-inserted item reads below the gate"
+        );
+    }
+
+    #[test]
+    fn quantile_threshold_edge_cases() {
+        // Empty samples → 0.0.
+        assert_eq!(FlyBloom::quantile_threshold(&[], 0.5), 0.0);
+        // Single sample → that sample, regardless of q.
+        assert_eq!(FlyBloom::quantile_threshold(&[0.42], 0.1), 0.42);
+        assert_eq!(FlyBloom::quantile_threshold(&[0.42], 0.9), 0.42);
+        // Min/max match q = 0/1.
+        let xs = vec![0.1, 0.4, 0.7, 1.0];
+        assert!((FlyBloom::quantile_threshold(&xs, 0.0) - 0.1).abs() < 1e-9);
+        assert!((FlyBloom::quantile_threshold(&xs, 1.0) - 1.0).abs() < 1e-9);
+        // Median is 0.55 (between 0.4 and 0.7 at position 1.5).
+        assert!((FlyBloom::quantile_threshold(&xs, 0.5) - 0.55).abs() < 1e-9);
+        // Non-finite values are skipped, not propagated.
+        let noisy = vec![0.1, f64::NAN, 0.4, f64::INFINITY, 0.7];
+        assert!(FlyBloom::quantile_threshold(&noisy, 0.5).is_finite());
     }
 
     #[test]

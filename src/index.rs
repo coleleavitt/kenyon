@@ -8,7 +8,7 @@
 //! pooled candidates are ranked by the high-dimensional hash (Sharma &
 //! Navlakha 2018, Sec. 3.4).
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use crate::code::{BitCode, KcCode};
 use crate::error::{KenyonError, Result};
@@ -196,10 +196,16 @@ impl FlyIndex {
 }
 
 /// DenseFly multi-probe index (one table).
+///
+/// Bins live in a `BTreeMap` (not `HashMap`) so a tie between two bins
+/// with the same `(radius, first_id)` resolves in lexical bit-code
+/// order — deterministic across platforms, kernels and allocator state.
+/// The README's "same seed → same hash on every platform and future
+/// version" promise applies to query outputs too, not just hash codes.
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DenseFlyIndex {
-    bins: HashMap<BitCode, Vec<u32>>,
+    bins: BTreeMap<BitCode, Vec<u32>>,
     codes: Vec<BitCode>,
 }
 

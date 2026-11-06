@@ -255,6 +255,53 @@ impl FlyModel {
         Ok(())
     }
 
+    /// Train on a text example using `encoder` to produce the feature
+    /// vector. Equivalent to `train_one(&encoder.encode(text), class)`
+    /// but factored so downstream callers don't have to depend on
+    /// [`crate::HashedText`] indirectly. The encoder's dimension MUST
+    /// match `FlyModelParams::n_inputs` — mismatch returns
+    /// `DimensionMismatch`, same as `train_one` with a short vector.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KenyonError::ClassOutOfRange`] on an invalid class, or
+    /// [`KenyonError::DimensionMismatch`] when `encoder.dim() != n_inputs`.
+    pub fn train_text(
+        &mut self,
+        encoder: &crate::text::HashedText,
+        text: &str,
+        class: usize,
+    ) -> Result<()> {
+        self.train_one(&encoder.encode(text), class)
+    }
+
+    /// Score text through `encoder` and return the MBON outputs. Same
+    /// shape as [`FlyModel::scores`] but takes `&str` + an encoder.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KenyonError::DimensionMismatch`] when `encoder.dim() != n_inputs`.
+    pub fn scores_text(
+        &mut self,
+        encoder: &crate::text::HashedText,
+        text: &str,
+    ) -> Result<Vec<f64>> {
+        self.scores(&encoder.encode(text))
+    }
+
+    /// Predicted class for text (ties → lowest class index).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KenyonError::DimensionMismatch`] when `encoder.dim() != n_inputs`.
+    pub fn predict_text(
+        &mut self,
+        encoder: &crate::text::HashedText,
+        text: &str,
+    ) -> Result<usize> {
+        self.predict(&encoder.encode(text))
+    }
+
     /// The associative weights of class `j` (`n_kc` values).
     pub fn class_weights(&self, j: usize) -> Option<&[f32]> {
         let m = self.p.n_kc;

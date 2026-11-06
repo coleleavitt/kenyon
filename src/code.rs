@@ -160,7 +160,12 @@ impl KcCode {
 }
 
 /// A packed bit vector (DenseFly hashes, binary FlyHash tags).
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+///
+/// `Ord` is derived so [`crate::DenseFlyIndex`] can store its bins in a
+/// `BTreeMap` for deterministic iteration (the kenyon README's "same
+/// seed → same hash on every platform and future version" promise
+/// applies to query outputs too, not just hash codes).
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BitCode {
     len: usize,
