@@ -8,6 +8,7 @@
 
 /// Deterministic pseudo-random generator. Not cryptographic.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Rng {
     s: [u64; 4],
 }

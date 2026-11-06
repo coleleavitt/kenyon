@@ -19,6 +19,7 @@ use crate::wta;
 
 /// How the tag is selected from the `m` activations.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum TagRule {
     /// The `k` most active units (the fly's APL inhibition).
     WinnerTakeAll(usize),
@@ -41,6 +42,7 @@ pub struct Scratch {
 /// A FlyHash function. Immutable after construction, so `&FlyHash` can be
 /// shared across threads.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FlyHash {
     expansion: Expansion,
     tag: TagRule,
@@ -49,6 +51,7 @@ pub struct FlyHash {
 
 /// Builder-style parameters for the standard FlyHash.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FlyHashParams {
     /// Input dimension `d`.
     pub n_inputs: usize,
@@ -231,6 +234,7 @@ impl FlyHash {
 
 /// DenseFly (Sharma & Navlakha 2018, Alg. 1).
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DenseFly {
     expansion: Expansion,
     preprocess: Preprocess,

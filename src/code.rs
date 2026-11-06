@@ -10,6 +10,7 @@ use crate::error::{KenyonError, Result};
 /// The binary variant (indices only, preprint p.9) compares by
 /// [`KcCode::overlap`] / [`KcCode::hamming`].
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct KcCode {
     dim: u32,
     indices: Vec<u32>,
@@ -160,6 +161,7 @@ impl KcCode {
 
 /// A packed bit vector (DenseFly hashes, binary FlyHash tags).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BitCode {
     len: usize,
     words: Vec<u64>,

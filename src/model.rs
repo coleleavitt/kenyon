@@ -27,6 +27,7 @@ use crate::wta;
 
 /// Layer-1 coding.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Coding {
     /// Keep the `l` most active positive KCs (the fly).
     Sparse,
@@ -36,6 +37,7 @@ pub enum Coding {
 
 /// Layer-2 learning rule (paper p.13 pseudocode).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum LearningRule {
     /// Perceptron v4 = FlyModel: always strengthen the target, never weaken.
     Associative,
@@ -49,6 +51,7 @@ pub enum LearningRule {
 
 /// FlyModel hyper-parameters.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FlyModelParams {
     /// Input dimension `d` (encoder feature size).
     pub n_inputs: usize,
@@ -93,12 +96,17 @@ impl FlyModelParams {
 
 /// The FlyModel continual learner.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FlyModel {
     p: FlyModelParams,
     theta: SparseProjection,
     /// `n_classes x n_kc`, row-major.
     w: Vec<f32>,
+    /// Allocation buffer. Not stored: reset on deserialize.
+    #[cfg_attr(feature = "serde", serde(skip, default))]
     act: Vec<f32>,
+    /// Allocation buffer. Not stored: reset on deserialize.
+    #[cfg_attr(feature = "serde", serde(skip, default))]
     idx: Vec<u32>,
 }
 

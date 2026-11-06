@@ -30,6 +30,16 @@ let score = novelty.novelty(&query)?; // 1 = nothing like it seen, 0 = familiar
 - **Seeded and portable.** Every random structure comes from a `u64` seed through the crate's own
   xoshiro256** generator, never `rand`. A seed gives the same hash on every platform and in
   every version. `tests/golden.rs` pins this.
+- **Bit-level stability guarantee.** The hashes a given seed produces are a stable surface: the
+  `Rng` constants (`splitmix64`'s multipliers, the `xoshiro256**` shifts and rotates, the stream
+  tags `PROJ`/`BERN`/`GAUS`/`TAG!`) and the `top_k` tie-break are frozen. A change to any of them
+  is a breaking change and bumps the major version. Downstream code that persists a `FlyHash` or
+  a `FlyIndex` can pin kenyon by exact rev and read its stored codes on any later patch release.
+- **Optional serde.** With `features = ["serde"]`, `FlyHash`, `FlyBloom`, `FlyIndex`, `FlyModel`,
+  their params and the `KcCode`/`BitCode` codes all round-trip through serde — downstream
+  persistence is a format decision (bincode, postcard, json), not a representation one.
+  `tests/serde_roundtrip.rs` covers both bit-packed and valued `FlyBloom` and tombstones in
+  `FlyIndex`.
 - **Ablations are first-class.** `TagRule::Fixed` gives the random-tag control. `TagRule::All`
   gives no WTA. `DenseProjection` gives the dense Gaussian control. `Coding::Dense` and the
   perceptron rules v1–v3 give the FlyModel ablations.

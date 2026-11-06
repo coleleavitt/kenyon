@@ -16,6 +16,7 @@ use crate::rng::Rng;
 /// (1, 2 or 4 bytes per edge). Chosen deterministically from the shape, so
 /// the same matrix always has the same representation.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 enum Indices {
     U8(Vec<u8>),
     U16(Vec<u16>),
@@ -82,6 +83,7 @@ impl Indices {
 /// Row boundaries: a fixed stride when every output has the same fan-in (the
 /// standard FlyHash), else explicit offsets (Bernoulli rows, measured wiring).
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 enum Rows {
     Stride(usize),
     Offsets(Vec<u32>),
@@ -127,6 +129,7 @@ fn row_dot<T: Ix>(idx: &[T], w: &[f32], x: &[f32]) -> f32 {
 /// `n_inputs`, and a uniform fan-in needs no offsets table. A standard
 /// FlyHash over 128 inputs costs one byte per edge.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SparseProjection {
     n_inputs: usize,
     n_outputs: usize,
@@ -379,6 +382,7 @@ impl SparseProjection {
 /// A dense `n_outputs x n_inputs` matrix with i.i.d. N(0, 1) entries
 /// (classical LSH / SimHash projections; Charikar 2002).
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DenseProjection {
     n_inputs: usize,
     n_outputs: usize,
@@ -428,6 +432,7 @@ impl DenseProjection {
 
 /// Either kind of expansion matrix.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Expansion {
     /// Sparse (binary or weighted) matrix: the fly.
     Sparse(SparseProjection),

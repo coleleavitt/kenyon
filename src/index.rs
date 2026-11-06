@@ -15,6 +15,7 @@ use crate::error::{KenyonError, Result};
 
 /// A search hit.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Hit {
     /// Item id (insertion order).
     pub id: u32,
@@ -30,11 +31,22 @@ fn rank(mut hits: Vec<Hit>, top_n: usize) -> Vec<Hit> {
 }
 
 /// Inverted index over sparse KC codes.
+///
+/// Ids are dense and assigned by insertion order. [`FlyIndex::remove`]
+/// tombstones an id so it no longer appears in query results and its
+/// code slot is replaced with an empty placeholder — ids never shift,
+/// so a downstream caller (e.g. a learned re-ranker storing per-id
+/// state) stays consistent across removals.
 #[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FlyIndex {
     dim: usize,
     postings: Vec<Vec<u32>>,
     codes: Vec<KcCode>,
+    /// Tombstone bitmap, `true` for an id removed with [`FlyIndex::remove`].
+    /// Lazily instantiated: a never-removing index keeps it empty.
+    #[cfg_attr(feature = "serde", serde(default))]
+    tombstoned: Vec<bool>,
 }
 
 impl FlyIndex {
@@ -44,10 +56,12 @@ impl FlyIndex {
             dim,
             postings: vec![Vec::new(); dim],
             codes: Vec::new(),
+            tombstoned: Vec::new(),
         }
     }
 
-    /// Number of stored items.
+    /// Number of stored items (tombstoned ids included — they still own
+    /// their slot).
     pub fn len(&self) -> usize {
         self.codes.len()
     }
@@ -55,6 +69,18 @@ impl FlyIndex {
     /// `true` if empty.
     pub fn is_empty(&self) -> bool {
         self.codes.is_empty()
+    }
+
+    /// Number of live (non-tombstoned) items.
+    pub fn live_len(&self) -> usize {
+        self.codes.len() - self.tombstoned.iter().filter(|&&t| t).count()
+    }
+
+    fn is_tombstoned(&self, id: u32) -> bool {
+        self.tombstoned
+            .get(id as usize)
+            .copied()
+            .unwrap_or(false)
     }
 
     /// Store a code; returns its id.
@@ -74,13 +100,42 @@ impl FlyIndex {
         Ok(id)
     }
 
-    /// The stored code for `id`.
+    /// Tombstone `id` so queries never return it. Idempotent: removing a
+    /// missing or already-removed id is a no-op and reports it with
+    /// `Ok(false)` so callers can log unexpected double-removes without an
+    /// error. The id's code is replaced with an empty placeholder (its
+    /// dimension preserved); its posting entries are not rewritten, so
+    /// `memory_bytes` does not drop until the index is rebuilt. Query
+    /// results skip tombstoned ids.
+    pub fn remove(&mut self, id: u32) -> Result<bool> {
+        let idx = id as usize;
+        if idx >= self.codes.len() {
+            return Ok(false);
+        }
+        if self.tombstoned.len() < self.codes.len() {
+            self.tombstoned.resize(self.codes.len(), false);
+        }
+        if self.tombstoned[idx] {
+            return Ok(false);
+        }
+        self.tombstoned[idx] = true;
+        // Replace the code so `get` returns a well-formed empty code: the
+        // dimension is preserved for consistency checks.
+        self.codes[idx] = KcCode::from_sorted(self.dim as u32, Vec::new(), Vec::new());
+        Ok(true)
+    }
+
+    /// The stored code for `id`, or `None` if `id` was tombstoned or never
+    /// existed. A tombstoned id reads as absent to callers.
     pub fn get(&self, id: u32) -> Option<&KcCode> {
+        if self.is_tombstoned(id) {
+            return None;
+        }
         self.codes.get(id as usize)
     }
 
     /// The `top_n` items with the largest overlap with `query` (ties by id).
-    /// Items sharing no unit are never returned.
+    /// Items sharing no unit, and tombstoned items, are never returned.
     pub fn query_overlap(&self, query: &KcCode, top_n: usize) -> Result<Vec<Hit>> {
         if query.dim() != self.dim {
             return Err(KenyonError::CodeMismatch {
@@ -91,6 +146,9 @@ impl FlyIndex {
         let mut counts: HashMap<u32, u32> = HashMap::new();
         for &u in query.indices() {
             for &id in &self.postings[u as usize] {
+                if self.is_tombstoned(id) {
+                    continue;
+                }
                 *counts.entry(id).or_insert(0) += 1;
             }
         }
@@ -106,18 +164,23 @@ impl FlyIndex {
 
     /// Linear scan ranking by Euclidean distance between valued tags
     /// (Dasgupta 2017's evaluation); score is the negative squared distance.
+    /// Tombstoned ids are skipped.
     pub fn query_euclidean(&self, query: &KcCode, top_n: usize) -> Result<Vec<Hit>> {
         let mut hits = Vec::with_capacity(self.codes.len());
         for (id, c) in self.codes.iter().enumerate() {
+            let id = id as u32;
+            if self.is_tombstoned(id) {
+                continue;
+            }
             hits.push(Hit {
-                id: id as u32,
+                id,
                 score: -query.euclidean_sq(c)?,
             });
         }
         Ok(rank(hits, top_n))
     }
 
-    /// Heap bytes held (codes + postings).
+    /// Heap bytes held (codes + postings + tombstone map).
     pub fn memory_bytes(&self) -> usize {
         self.postings
             .iter()
@@ -128,11 +191,13 @@ impl FlyIndex {
                 .iter()
                 .map(|c| c.memory_bytes() + 40)
                 .sum::<usize>()
+            + self.tombstoned.capacity()
     }
 }
 
 /// DenseFly multi-probe index (one table).
 #[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DenseFlyIndex {
     bins: HashMap<BitCode, Vec<u32>>,
     codes: Vec<BitCode>,

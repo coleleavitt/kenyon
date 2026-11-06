@@ -20,6 +20,7 @@ use crate::hash::{FlyHash, Scratch};
 
 /// Decay and recovery rates (PNAS 2018 Eq. 2).
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BloomParams {
     /// Multiplier applied to an active KC's weight on insert, `0 <= delta < 1`.
     pub decay: f32,
@@ -38,6 +39,7 @@ impl BloomParams {
 
 /// The filter's `m` cells.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 enum Cells {
     /// `delta = epsilon = 0`: every weight is exactly 1 (never stored) or 0
     /// (stored), so one bit per cell is exact. A set bit means "stored" (weight
@@ -50,6 +52,7 @@ enum Cells {
 
 /// A fly Bloom filter over a [`FlyHash`].
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FlyBloom {
     hasher: FlyHash,
     params: BloomParams,

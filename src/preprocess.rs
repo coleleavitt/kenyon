@@ -9,6 +9,7 @@
 
 /// How an input vector is transformed before projection.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Preprocess {
     /// Use the input as is.
     #[default]
